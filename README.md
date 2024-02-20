@@ -19,7 +19,7 @@ coCanvas Frontend enables users to collaborate seamlessly on a digital canvas, o
 To get started with coCanvas Frontend, follow these steps:
 
 1. **Clone this repository to your local machine:**
-git clone [https://github.com/pranay-0512/codesk]
+git clone https://github.com/pranay-0512/codesk
 
 2. **Install dependencies using npm:**
 npm install
