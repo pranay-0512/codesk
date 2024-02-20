@@ -1,0 +1,92 @@
+# Ignore all files in the node_modules directory
+node_modules
+
+# Ignore all files in the dist directory
+dist
+
+# Ignore all files in the coverage directory
+coverage
+
+# Ignore all files in the .git directory
+.git
+
+# Ignore all files in the .vscode directory
+.vscode
+
+# Ignore all files in the e2e directory
+e2e
+
+# Ignore all files with .spec.ts extension
+*.spec.ts
+
+# Ignore all files with .d.ts extension
+*.d.ts
+
+# Ignore all files with .map extension
+*.map
+
+# Ignore all files with .js extension
+*.js
+
+# Ignore all files with .js.map extension
+*.js.map
+
+# Ignore all files with .css extension
+*.css
+
+# Ignore all files with .css.map extension
+*.css.map
+
+# Ignore all files with .html extension
+*.html
+
+# Ignore all files with .json extension
+*.json
+
+# Ignore all files with .md extension
+*.md
+
+# Ignore all files with .txt extension
+*.txt
+
+# Ignore all files with .yml extension
+*.yml
+
+# Ignore all files with .yaml extension
+*.yaml
+
+# Ignore all files with .xml extension
+*.xml
+
+# Ignore all files with .svg extension
+*.svg
+
+# Ignore all files with .png extension
+*.png
+
+# Ignore all files with .jpg extension
+*.jpg
+
+# Ignore all files with .jpeg extension
+*.jpeg
+
+# Ignore all files with .gif extension
+*.gif
+
+# Ignore all files with .bmp extension
+*.bmp
+
+# Ignore all files with .ico extension
+*.ico
+
+# Ignore all files with .woff extension
+*.woff
+
+# Ignore all files with .woff2 extension
+*.woff2
+
+# Ignore all files with .ttf extension
+*.ttf
+
+# Ignore all files with .eot extension
+*.eot

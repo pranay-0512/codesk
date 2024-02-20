@@ -1,27 +1,36 @@
-# Codesk
+# coCanvas Frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.2.13.
+Welcome to coCanvas Frontend, the Angular-powered interface for our real-time collaborative whiteboard application!
 
-## Development server
+## Overview
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+coCanvas Frontend enables users to collaborate seamlessly on a digital canvas, offering drawing tools, shape creation, text input, and real-time synchronization via Websockets. With a sleek and intuitive user interface, coCanvas Frontend fosters collaborative creativity among users across various devices and browsers.
 
-## Code scaffolding
+## Features
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- **Real-time collaboration:** Work together instantly on a digital canvas.
+- **Drawing tools:** Express your ideas with a variety of drawing tools.
+- **Shape creation:** Easily create shapes to enhance your designs.
+- **Text input:** Add text to annotate and communicate your thoughts.
+- **Responsive design:** Enjoy seamless collaboration across devices and browsers.
 
-## Build
+## Getting Started
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+To get started with coCanvas Frontend, follow these steps:
 
-## Running unit tests
+1. **Clone this repository to your local machine:**
+git clone [<repository-url>](https://github.com/pranay-0512/codesk)
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+2. **Install dependencies using npm:**
+npm install
 
-## Running end-to-end tests
+3. **Start the development server:**
+ng serve
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+4. **Access the application in your browser:**
+http://localhost:4200
 
-## Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Contact
+
+If you have any questions or feedback, feel free to reach out to us at [email](linkpranayv90@gmail.com)
