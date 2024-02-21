@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CustomValidators } from 'src/app/_validators/custom-validators.validators';
 
 @Component({
@@ -10,7 +11,7 @@ import { CustomValidators } from 'src/app/_validators/custom-validators.validato
 export class LoginComponent implements OnInit {
 
   public loginForm: FormGroup;
-  constructor() {
+  constructor(private router: Router) {
     this.loginForm = new FormGroup({
       email: new FormControl<string | null>(null, [Validators.required, CustomValidators.emailValidation]),
       password: new FormControl<string | null>(null, [Validators.required, CustomValidators.oneUpperCase, CustomValidators.oneLowerCase, CustomValidators.oneDigit, CustomValidators.oneSpecialCharacter, CustomValidators.minimumLength, CustomValidators.noWhiteSpace]),
@@ -21,6 +22,7 @@ export class LoginComponent implements OnInit {
   }
   loginUser(): void {
     console.log(this.loginForm);
+    this.router.navigate(['/dashboard']);
   }
 
 }
