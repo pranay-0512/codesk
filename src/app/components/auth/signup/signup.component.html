@@ -1,1 +1,62 @@
-<p>signup works!</p>
+Sign up to coCanvas
+<form [formGroup]="signupForm" (ngSubmit)="registerUser()">
+    <div class="col-xl-12 p-5">
+        <label for="name">Name: <span>*</span> </label>
+        <input type="text" id="name" formControlName="name"
+            placeholder="Enter name">
+        <div
+            *ngIf="signupForm.controls['name'].touched && signupForm.controls['name'].invalid">
+            <div *ngIf="signupForm.controls['name'].errors">
+                <span
+                    *ngIf="signupForm.controls['name'].errors['required']">Name
+                    is required</span>
+                <span
+                    *ngIf="!signupForm.controls['name'].errors['required'] && signupForm.controls['name'].errors['onlyStringValidation']">
+                    Invalid name </span>
+            </div>
+        </div>
+    </div>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" formControlName="email" required>
+        <div
+            *ngIf="signupForm.controls['email'].touched && signupForm.controls['email'].invalid">
+            <div *ngIf="signupForm.controls['email'].errors">
+                <span
+                    *ngIf="signupForm.controls['email'].errors['required']">Email
+                    is required</span>
+                <span
+                    *ngIf="!signupForm.controls['email'].errors['required'] && signupForm.controls['email'].errors['emailValidation']">
+                    Invalid email </span>
+            </div>
+        </div>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="text" id="password" formControlName="password" required>
+        <div
+            *ngIf="signupForm.controls['password'].touched && signupForm.controls['password'].invalid">
+            <div *ngIf="signupForm.controls['password'].errors">
+                <span
+                    *ngIf="signupForm.controls['password'].errors['required']">Password
+                    is required</span>
+                <span
+                    *ngIf="!signupForm.controls['password'].errors['required'] && signupForm.controls['password'].errors['oneUpperCaseValidation']">
+                    One Upper Case </span>
+                <span
+                    *ngIf="!signupForm.controls['password'].errors['required'] && signupForm.controls['password'].errors['oneLowerCaseValidation']">
+                    One Lower Case </span>
+                <span
+                    *ngIf="!signupForm.controls['password'].errors['required'] && signupForm.controls['password'].errors['oneDigitValidation']">
+                    One Digit </span>
+                <span
+                    *ngIf="!signupForm.controls['password'].errors['required'] && signupForm.controls['password'].errors['oneSpecialCharacterValidation']">
+                    One Special Character </span>
+                <span
+                    *ngIf="!signupForm.controls['password'].errors['required'] && signupForm.controls['password'].errors['minimumLengthValidation']">
+                    Minimum 8 characters </span>
+            </div>
+        </div>
+    </div>
+    <button type="submit" [disabled]="signupForm.invalid">Sign Up</button>
+</form>
