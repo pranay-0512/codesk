@@ -1,1 +1,46 @@
-<p>login works!</p>
+Login to coCanvas
+<form [formGroup]="loginForm" (ngSubmit)="loginUser()">
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" formControlName="email" required>
+        <div
+            *ngIf="loginForm.controls['email'].touched && loginForm.controls['email'].invalid">
+            <div *ngIf="loginForm.controls['email'].errors">
+                <span
+                    *ngIf="loginForm.controls['email'].errors['required']">Email
+                    is required</span>
+                <span
+                    *ngIf="!loginForm.controls['email'].errors['required'] && loginForm.controls['email'].errors['emailValidation']">
+                    Invalid email </span>
+            </div>
+        </div>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="text" id="password" formControlName="password" required>
+        <div
+            *ngIf="loginForm.controls['password'].touched && loginForm.controls['password'].invalid">
+            <div *ngIf="loginForm.controls['password'].errors">
+                <span
+                    *ngIf="loginForm.controls['password'].errors['required']">Password
+                    is required</span>
+                <span
+                    *ngIf="!loginForm.controls['password'].errors['required'] && loginForm.controls['password'].errors['oneUpperCaseValidation']">
+                    One Upper Case </span>
+                <span
+                    *ngIf="!loginForm.controls['password'].errors['required'] && loginForm.controls['password'].errors['oneLowerCaseValidation']">
+                    One Lower Case </span>
+                <span
+                    *ngIf="!loginForm.controls['password'].errors['required'] && loginForm.controls['password'].errors['oneDigitValidation']">
+                    One Digit </span>
+                <span
+                    *ngIf="!loginForm.controls['password'].errors['required'] && loginForm.controls['password'].errors['oneSpecialCharacterValidation']">
+                    One Special Character </span>
+                <span
+                    *ngIf="!loginForm.controls['password'].errors['required'] && loginForm.controls['password'].errors['minimumLengthValidation']">
+                    Minimum 8 characters </span>
+            </div>
+        </div>
+    </div>
+    <button type="submit" [disabled]="loginForm.invalid">Login</button>
+</form>
