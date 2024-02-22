@@ -12,10 +12,8 @@ export class SideMenuComponent implements OnInit {
   constructor(private router: Router) { }
 
   ngOnInit(): void {
-    console.log(this.menuList)
   }
   goToMenuItem(item: MenuItem): void {
-    console.log(item);
     this.router.navigate(['/dashboard/' + item.link]);
   }
 

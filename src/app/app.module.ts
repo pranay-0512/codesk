@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app.routing';
 import { AppComponent } from './app.component';
 import { SideMenuComponent } from './components/shared/side-menu/side-menu.component';
 import { SharedModule } from './components/shared/shared.module';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import { SharedModule } from './components/shared/shared.module';
     AppRoutingModule,
     ReactiveFormsModule,
     FormsModule,
-    SharedModule
+    SharedModule,
+    NgbModule
   ],
   providers: [],
   bootstrap: [AppComponent]

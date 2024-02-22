@@ -1,4 +1,7 @@
 Login to coCanvas
+
+
+
 <form [formGroup]="loginForm" (ngSubmit)="loginUser()">
     <div>
         <label for="email">Email:</label>
@@ -42,5 +45,8 @@ Login to coCanvas
             </div>
         </div>
     </div>
-    <button type="submit" [disabled]="loginForm.invalid">Login</button>
+    <button type="submit" class="btn btn-primary m-3" [disabled]="loginForm.invalid">Login</button>
 </form>
+<button class="btn border-danger" (click)="goToForgotPassword()">Forgor password</button>
+<button class="btn btn-warning m-3" (click)="goToRegister()">Register</button>
+<button class="btn btn-danger m-3" (click)="goToDashboard()">Go to dashboard</button>

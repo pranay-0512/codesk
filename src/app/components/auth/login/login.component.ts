@@ -20,6 +20,15 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
 
   }
+  goToRegister(): void {
+    this.router.navigate(['/auth/signup']);
+  }
+  goToDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+  goToForgotPassword(): void {
+    this.router.navigate(['/auth/forgot-password']);
+  }
   loginUser(): void {
     console.log(this.loginForm);
     if(this.loginForm.invalid) {

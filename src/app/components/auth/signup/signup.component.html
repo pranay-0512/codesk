@@ -1,6 +1,6 @@
 Sign up to coCanvas
 <form [formGroup]="signupForm" (ngSubmit)="registerUser()">
-    <div class="col-xl-12 p-5">
+    <div class="">
         <label for="name">Name: <span>*</span> </label>
         <input type="text" id="name" formControlName="name"
             placeholder="Enter name">
@@ -58,5 +58,7 @@ Sign up to coCanvas
             </div>
         </div>
     </div>
-    <button type="submit" [disabled]="signupForm.invalid">Sign Up</button>
+    <button class="btn btn-primary m-3" type="submit" [disabled]="signupForm.invalid">Sign Up</button>
 </form>
+<button class="btn btn-danger m-3" (click)="goToLogin()">Login</button>
+<button class="btn btn-warning m-3" (click)="goToDashboard()">Dashboard</button>

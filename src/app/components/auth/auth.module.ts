@@ -20,9 +20,15 @@ import { SharedModule } from '../shared/shared.module';
     CommonModule,
     SharedModule,
     RouterModule.forChild([
-      { path: 'login', component: LoginComponent, title: 'Login'},
-      { path: 'signup', component: SignupComponent, title: 'Sign Up'},
-      { path: 'forgot-password', component: ForgotPasswordComponent, title: 'Forgot Password'}
+      {
+        path: '',
+        children: [
+          { path: 'login', component: LoginComponent },
+          { path: 'signup', component: SignupComponent },
+          { path: 'forgot-password', component: ForgotPasswordComponent },
+          { path: '', redirectTo: 'login', pathMatch: 'full' },
+        ]
+      }
     ])
   ]
 })
