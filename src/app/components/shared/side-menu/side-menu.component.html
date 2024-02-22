@@ -1,0 +1,9 @@
+<div *ngFor="let item of menuList; let i = index;">
+    <div class="p5">
+        <ul>
+            <li (click)="goToMenuItem(item)">
+                <span>{{i}} -> {{item.title}}</span>
+            </li>
+        </ul>
+    </div>
+</div>

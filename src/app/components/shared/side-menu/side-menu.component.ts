@@ -12,14 +12,11 @@ export class SideMenuComponent implements OnInit {
   constructor(private router: Router) { }
 
   ngOnInit(): void {
+    console.log(this.menuList)
   }
-  goToLink(menuItem: MenuItem) {
-    if(menuItem.link) {
-      this.router.navigate([menuItem.link]);
-    }
-    else {
-      window.open(menuItem.target as string, '_blank');
-    }
+  goToMenuItem(item: MenuItem): void {
+    console.log(item);
+    this.router.navigate(['/dashboard/' + item.link]);
   }
 
 }

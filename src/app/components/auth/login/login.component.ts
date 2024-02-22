@@ -22,7 +22,12 @@ export class LoginComponent implements OnInit {
   }
   loginUser(): void {
     console.log(this.loginForm);
-    this.router.navigate(['/dashboard']);
+    if(this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+    }
+    else {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
 }

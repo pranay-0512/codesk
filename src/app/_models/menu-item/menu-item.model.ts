@@ -10,27 +10,27 @@ export const MenuList: Array<MenuItem> = [
     {
         title: 'Home',
         icon: 'home',
-        link: '/',
+        link: 'home',
         default: true
     },
     {
         title: 'Templates',
         icon: 'info',
-        link: '/templates'
+        link: 'templates'
     },
     {
         title: 'All boards',
         icon: 'email',
-        link: '/all-boards'
+        link: 'all-boards'
     },
     {
         title: 'Shared with me',
         icon: 'email',
-        link: '/shared-with-me'
+        link: 'shared-with-me'
     },
     {
         title: 'Trash',
         icon: 'email',
-        link: '/trash'
+        link: 'trash'
     }
 ]
