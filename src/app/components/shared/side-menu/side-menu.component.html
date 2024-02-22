@@ -1,9 +1,13 @@
-<div *ngFor="let item of menuList; let i = index;">
-    <div class="p5">
-        <ul>
-            <li (click)="goToMenuItem(item)">
-                <span>{{i}} -> {{item.title}}</span>
-            </li>
-        </ul>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <ul>
+                <li class="list-group-item" *ngFor="let item of menuList; let i = index;" (click)="goToMenuItem(item)">
+                    <div class="border bg-light p-3 rounded">
+                        <span class="text-success">{{item.title}}</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
