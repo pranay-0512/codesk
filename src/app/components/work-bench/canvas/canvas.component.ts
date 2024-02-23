@@ -12,7 +12,6 @@ export class CanvasComponent implements OnInit {
     this.background()
     const body = document.querySelector('body');
     body?.setAttribute('style', 'overflow: hidden');
-    body?.classList.add('checkered-bg');  
   }
   
   background(): void {
@@ -20,7 +19,7 @@ export class CanvasComponent implements OnInit {
     const ctx = canvas?.getContext('2d');
     console.log(canvas.units)
     if (ctx) {
-      ctx.fillStyle = 'black';
+      ctx.fillStyle = '#329F5B';
       ctx.fillRect(100, 100, 200, 200);
     }
     // const patternSize = 5;
