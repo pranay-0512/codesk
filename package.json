@@ -24,6 +24,7 @@
     "bootstrap": "^5.3.3",
     "ef-infinite-canvas": "^0.6.3",
     "jquery": "^3.7.1",
+    "material-icons": "^1.13.12",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"

@@ -1,13 +1,5 @@
-<div class="overlay">
-    Eraser
-    Hand tool
-    Select tool
-    Square tool
-    Rhombo tool
-    Circle tool
-    Arrow tool
-    Line tool
-    Pencil tool
-    Text tool
-    More tools []
+<div class="overlay d-flex justify-content-center align-items-center">
+    <div class="m-2" (click)="selectTool('free_draw')">Free Draw</div>
+    <div class="m-2" (click)="selectTool('pencil')">Pencil</div>
+    <div class="m-2" (click)="selectTool('eraser')">Eraser</div>
 </div>
