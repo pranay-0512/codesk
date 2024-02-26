@@ -7,7 +7,7 @@ import { MenuItem, MenuList } from 'src/app/_models/work-bench/menu-item/menu-it
   styleUrls: ['./dropdown-menu.component.scss']
 })
 export class DropdownMenuComponent implements OnInit {
-  public menuItems: Array<MenuItem> = MenuList;
+  public WorkBenchMenuItems: Array<MenuItem> = MenuList;
   constructor() { }
 
   ngOnInit(): void {

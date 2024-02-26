@@ -2,6 +2,6 @@
     display: inline;
     position: absolute;
     top: 0;
-    right: 0;
+    right: calc(50vw - 50px);
     z-index: 1000;
 }
