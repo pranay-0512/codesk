@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { MenuItem, MenuList } from 'src/app/_models/work-bench/menu-item/menu-item.model';
 
 @Component({
   selector: 'app-work-bench',
@@ -9,15 +8,11 @@ import { MenuItem, MenuList } from 'src/app/_models/work-bench/menu-item/menu-it
 export class WorkBenchComponent implements OnInit {
   constructor() { }
   public selectedTool!: string;
-
   onToolSelected(tool: string)  {
     this.selectedTool = tool;
   }
   ngOnInit(): void {
     console.log("work bench component loaded");
-  }
-  shareBoard(): void {
-    console.log('share button clicked');
   }
   clearCanvas(): void {
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
