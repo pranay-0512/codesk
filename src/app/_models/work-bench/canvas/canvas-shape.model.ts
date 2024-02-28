@@ -8,6 +8,7 @@ export class CoCanvasShape{
     start_y!: number;
     width!: number;
     height!: number;
+    line_width!: number;
     stroke_color!: string;
     type_enum!: 'RECTANGLE' | 'DIAMOND' | 'ELLIPSE' | 'LINE' | 'ARROW' | 'FREE_DRAW' | 'TEXT' | 'ERASER' | 'SELECT';
     shape_manager!: ShapeManager;
