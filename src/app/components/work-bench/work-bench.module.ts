@@ -8,6 +8,7 @@ import { DropdownMenuComponent } from './overlay-components/dropdown-menu/dropdo
 import { ToolsComponent } from './overlay-components/tools/tools.component';
 import { UtilityComponent } from './overlay-components/utility/utility.component';
 import { SharedModule } from '../shared/shared.module';
+import { MatIconModule } from '@angular/material/icon';
 
 
 
@@ -23,6 +24,7 @@ import { SharedModule } from '../shared/shared.module';
   imports: [
     CommonModule,
     SharedModule,
+    MatIconModule,
     RouterModule.forChild([
       { path: ':id', component: WorkBenchComponent },
       { path: '', redirectTo: '/', pathMatch: 'full' },

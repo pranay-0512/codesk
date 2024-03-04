@@ -2,7 +2,16 @@
     display: inline;
     position: absolute;
     top: 0;
-    right: calc(50vw - 50px);
+    right: calc(50vw - 10vw);
     z-index: 1000;
     user-select: none;
+    cursor: pointer;
+    .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 100,
+        'GRAD' 200,
+        'opsz' 40
+      }
 }
+

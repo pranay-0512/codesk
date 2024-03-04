@@ -6,6 +6,8 @@ import { AppComponent } from './app.component';
 import { SideMenuComponent } from './components/shared/side-menu/side-menu.component';
 import { SharedModule } from './components/shared/shared.module';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatIconModule } from '@angular/material/icon';
 
 
 @NgModule({
@@ -18,7 +20,9 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     ReactiveFormsModule,
     FormsModule,
     SharedModule,
-    NgbModule
+    NgbModule,
+    BrowserAnimationsModule,
+    MatIconModule
   ],
   providers: [],
   bootstrap: [AppComponent]
