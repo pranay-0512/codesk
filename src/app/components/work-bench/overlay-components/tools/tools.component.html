@@ -1,67 +1,11 @@
 <div class="overlay d-flex justify-content-center align-items-center">
-    <div class="m-2" (click)="selectTool('select')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                crop_free
-            </span>
-        </mat-icon>
-    </div>
-    <div class="m-2" (click)="selectTool('pan')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                pan_tool
+    <div *ngFor="let item of tools; let i = index">
+        <div class="m-2" (click)="selectTool(item)">
+            <mat-icon>
+                <span class="material-symbols-outlined" title={{item.name}}>
+                    {{item.icon}}
                 </span>
-        </mat-icon>
+            </mat-icon>
+        </div>
     </div>
-    <div class="m-2" (click)="selectTool('square')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                check_box_outline_blank
-            </span>
-        </mat-icon>
-    </div> 
-    <div class="m-2" (click)="selectTool('circle')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                circle
-            </span>
-        </mat-icon>
-    </div>
-    <div class="m-2" (click)="selectTool('circle')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                arrow_outward
-            </span>
-        </mat-icon>
-    </div>
-    <div class="m-2" (click)="selectTool('circle')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                horizontal_rule
-                </span>
-        </mat-icon>
-    </div>
-    <div class="m-2" (click)="selectTool('free_draw')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                brush
-            </span>
-        </mat-icon>
-    </div>
-    <div class="m-2" (click)="selectTool('free_draw')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                format_size
-                </span>
-        </mat-icon>
-    </div>
-    <div class="m-2" (click)="selectTool('free_draw')">
-        <mat-icon>
-            <span class="material-symbols-outlined">
-                ink_eraser
-                </span>
-        </mat-icon>
-    </div>
-    
-    
 </div>

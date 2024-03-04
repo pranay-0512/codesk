@@ -4,16 +4,53 @@ export class CoCanvasShape{
     isSelected!: boolean;
     isDragging!: boolean;
     id!: string;
-    start_x!: number; // x coordinate of the starting point // center point for ellipse;
-    start_y!: number; // y coordinate of the starting point // center point for ellipse;
-    width?: number; // width of the rectangle
-    height?: number; // height of the rectangle
-    radius?: number; // radius of the ellipse
-    angle?: number; // angle of the line // clock wise angle
-    length?: number; // length of the line
+    rectangle?: {
+        start_x: number;
+        start_y: number;
+        width: number;
+        height: number;
+    }
+    ellipse?: {
+        center_x: number;
+        center_y: number;
+        radius_x: number;
+        radius_y: number;
+    }
+    line?: {
+        start_x: number;
+        start_y: number;
+        end_x: number;
+        end_y: number;
+        lineCap: 'round' | 'butt' | 'square';
+        lineJoin: 'round' | 'bevel' | 'miter';
+    }
+    arrow?: {
+        start_x: number;
+        start_y: number;
+        end_x: number;
+        end_y: number;
+    }
+    text?: {
+        start_x: number;
+        start_y: number;
+        text: string;
+    }
+    free_draw?: {
+        start_x: number;
+        start_y: number;
+        points: {x: number, y: number}[];
+    }
+    // start_x!: number; // x coordinate of the starting point // center point for ellipse;
+    // start_y!: number; // y coordinate of the starting point // center point for ellipse;
+    // width?: number; // width of the rectangle
+    // height?: number; // height of the rectangle
+    // radius?: number; // radius of the ellipse
+    // angle?: number; // angle of the line // clock wise angle
+    // length?: number; // length of the line
     line_width!: number;
     stroke_color!: string;
-    type_enum!: 'RECTANGLE' | 'DIAMOND' | 'ELLIPSE' | 'LINE' | 'ARROW' | 'FREE_DRAW' | 'TEXT' | 'ERASER' | 'SELECT';
+    background_color?: string;
+    type_enum!: 'RECTANGLE' | 'ELLIPSE' | 'LINE' | 'ARROW' | 'FREE_DRAW' | 'TEXT';
     shape_manager!: ShapeManager;
 }
 

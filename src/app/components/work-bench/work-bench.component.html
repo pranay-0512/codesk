@@ -1,6 +1,6 @@
 <app-canvas [selectedTool]="selectedTool"></app-canvas>
 <app-dropdown-menu></app-dropdown-menu>
-<app-tools (toolSelected)="onToolSelected($event.toString())"></app-tools>
+<app-tools (toolSelected)="onToolSelected($event)"></app-tools>
 <app-utility></app-utility>
 <app-button 
     topPos="10px" 
