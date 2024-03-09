@@ -16,11 +16,12 @@ export class WorkBenchComponent implements OnInit {
     this.selectedTool = event as unknown as CoCanvasTool;
   }
   clearCanvas(): void {
+    localStorage.removeItem('shapes');
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      localStorage.removeItem('shapes');
     }
+    window.location.reload();
   }
 }

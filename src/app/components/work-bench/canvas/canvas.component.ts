@@ -4,35 +4,38 @@ import { CoCanvasShape } from 'src/app/_models/work-bench/canvas/canvas-shape.mo
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { ToolsComponent } from '../overlay-components/tools/tools.component';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
+import { WebsocketShapeService } from 'src/app/_services/websocket/websocket-shape.service';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
   styleUrls: ['./canvas.component.scss']
 })
 export class CanvasComponent implements OnInit {
-  @Input() selectedTool!: CoCanvasTool;
-  public tooled = tools[0]; 
+  @Input() selectedTool: CoCanvasTool = tools[2];
+  public tooled = tools[6]; 
+  // public tooled = tools[6]; 
   public is_dragging = false;
   public start_x = 0;
   public start_y = 0;
   public shapes: Array<CoCanvasShape> = [];
   public selected_shape!: CoCanvasShape;
+  
   public shape_manager = {
     border: 5,
     border_color: 'rgba(0,0,100,0.5)'
   };
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
-    theme: 'light',
+    theme: 'dark',
     currentFillStyle: 'rgba(0,0,0,0)',
     currentFontFamily: 0,
     currentFontSize: 16,
     currentOpacity: 1,
     currentRoughness: 1,
-    currentStrokeColor: 'black',
-    currentRoundness: 25,
+    currentStrokeColor: 'white',
+    currentRoundness: 0,
     currentStrokeStyle: 'solid',
-    currentStrokeWidth: 5,
+    currentStrokeWidth: 2,
     currentTextAlign: 'left',
     editingGroupId: null,
     activeTool: {
@@ -53,77 +56,35 @@ export class CanvasComponent implements OnInit {
     selectedElementIds: {
       selectedElementIds: []
     },
+    font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
       value: 1
     }
   };
-  public shape1: CoCanvasShape = {
-    id: '6adfb34dCGfd8',
+  public freeShape: CoCanvasShape = {
+    id: '6adfb34dCGfd7',
+    type_enum: 'FREE_DRAW',
+    free_draw: {
+      points: []
+    },
+    line_width: this.canvas_state.currentStrokeWidth,
+    stroke_color: 'pink',
+    isDragging: false,
+    isSelected: false,
+    touchOffsetX: 0,
+    touchOffsetY: 0,
+    shape_manager: this.shape_manager
+  };
+  public rectShape: CoCanvasShape = {
+    id: '6adfb34dCGfd7',
     type_enum: 'RECTANGLE',
     rectangle: {
-      start_x: 100,
-      start_y: 100,
-      width: 360,
-      height: 340
+      start_x: 0,
+      start_y: 0,
+      width: 0,
+      height: 0
     },
-    background_color: 'rgba(0,0,0,0)',
-    line_width: this.canvas_state.currentStrokeWidth,
-    stroke_color: 'black',
-    isDragging: false,
-    isSelected: false,
-    touchOffsetX: 0,
-    touchOffsetY: 0,
-    shape_manager: this.shape_manager
-  };
-  public shape2: CoCanvasShape = {
-    id: '6adfb34dCGfd9',
-    type_enum: 'ELLIPSE',
-    ellipse: {
-      center_x: 800,
-      center_y: 200,
-      radius_x: 200,
-      radius_y: 100
-    },
-    background_color: 'rgba(0,0,0,0)',
-    line_width: this.canvas_state.currentStrokeWidth,
-    stroke_color: 'brown',
-    isDragging: false,
-    isSelected: false,
-    touchOffsetX: 0,
-    touchOffsetY: 0,
-    shape_manager: this.shape_manager
-  };
-  public shape3: CoCanvasShape = {
-    id: '6adfb34dCGfd10',
-    type_enum: 'LINE',
-    line: {
-      start_x: 500,
-      start_y: 500,
-      end_x: 200,
-      end_y: 500,
-      lineCap: 'round',
-      lineJoin: 'round'
-    },
-    background_color: 'rgba(0,0,0,0)',
-    line_width: this.canvas_state.currentStrokeWidth,
-    stroke_color: 'red',
-    isDragging: false,
-    isSelected: false,
-    touchOffsetX: 0,
-    touchOffsetY: 0,
-    shape_manager: this.shape_manager
-  };
-  public shape4: CoCanvasShape = {
-    id: '6adfb34dCGfd11',
-    type_enum: 'ARROW',
-    arrow: {
-      start_x: 600,
-      start_y: 200,
-      end_x: 500,
-      end_y: 200
-    },
-    background_color: 'rgba(0,0,0,0)',
     line_width: this.canvas_state.currentStrokeWidth,
     stroke_color: 'blue',
     isDragging: false,
@@ -132,130 +93,15 @@ export class CanvasComponent implements OnInit {
     touchOffsetY: 0,
     shape_manager: this.shape_manager
   };
-  public shape5: CoCanvasShape = {
-    id: '6adfb34dCGfd12',
-    type_enum: 'FREE_DRAW',
-    free_draw: {
-      start_x: 800,
-      start_y: 90,
-      points: [
-        {"x": 0, "y": 0},
-        {"x": 1, "y": 0},
-        {"x": 4, "y": 0},
-        {"x": 9, "y": 0},
-        {"x": 15, "y": 0},
-        {"x": 20, "y": 0},
-        {"x": 24, "y": 1},
-        {"x": 30, "y": 1},
-        {"x": 35, "y": 1},
-        {"x": 40, "y": 1},
-        {"x": 47, "y": 2},
-        {"x": 55, "y": 3},
-        {"x": 67, "y": 4},
-        {"x": 82, "y": 8},
-        {"x": 98, "y": 9},
-        {"x": 113, "y": 11},
-        {"x": 124, "y": 13},
-        {"x": 132, "y": 14},
-        {"x": 137, "y": 14},
-        {"x": 143, "y": 15},
-        {"x": 151, "y": 16},
-        {"x": 159, "y": 18},
-        {"x": 169, "y": 19},
-        {"x": 177, "y": 20},
-        {"x": 185, "y": 21},
-        {"x": 193, "y": 22},
-        {"x": 197, "y": 23},
-        {"x": 200, "y": 23},
-        {"x": 201, "y": 23},
-        {"x": 201, "y": 24},
-        {"x": 201, "y": 25},
-        {"x": 203, "y": 26},
-        {"x": 205, "y": 29},
-        {"x": 206, "y": 30},
-        {"x": 207, "y": 33},
-        {"x": 209, "y": 35},
-        {"x": 211, "y": 38},
-        {"x": 211, "y": 43},
-        {"x": 213, "y": 47},
-        {"x": 215, "y": 51},
-        {"x": 216, "y": 55},
-        {"x": 216, "y": 56},
-        {"x": 216, "y": 58},
-        {"x": 217, "y": 59},
-        {"x": 217, "y": 60},
-        {"x": 219, "y": 60},
-        {"x": 219, "y": 61},
-        {"x": 219, "y": 63},
-        {"x": 221, "y": 65},
-        {"x": 223, "y": 66},
-        {"x": 223, "y": 67},
-        {"x": 224, "y": 69},
-        {"x": 227, "y": 70},
-        {"x": 229, "y": 72},
-        {"x": 229, "y": 73},
-        {"x": 232, "y": 75},
-        {"x": 234, "y": 75},
-        {"x": 236, "y": 76},
-        {"x": 238, "y": 78},
-        {"x": 240, "y": 79},
-        {"x": 243, "y": 80},
-        {"x": 246, "y": 80},
-        {"x": 251, "y": 82},
-        {"x": 254, "y": 83},
-        {"x": 258, "y": 83},
-        {"x": 261, "y": 83},
-        {"x": 263, "y": 83},
-        {"x": 265, "y": 83},
-        {"x": 266, "y": 82},
-        {"x": 270, "y": 80},
-        {"x": 274, "y": 77},
-        {"x": 278, "y": 73},
-        {"x": 282, "y": 70},
-        {"x": 286, "y": 68},
-        {"x": 287, "y": 64},
-        {"x": 288, "y": 62},
-        {"x": 291, "y": 59},
-        {"x": 292, "y": 56},
-        {"x": 292, "y": 53},
-        {"x": 294, "y": 49},
-        {"x": 295, "y": 47},
-        {"x": 295, "y": 44},
-        {"x": 296, "y": 43},
-        {"x": 296, "y": 42},
-        {"x": 296, "y": 40},
-        {"x": 296, "y": 39},
-        {"x": 296, "y": 37},
-        {"x": 296, "y": 34},
-        {"x": 296, "y": 32},
-        {"x": 296, "y": 30},
-        {"x": 296, "y": 28},
-        {"x": 296, "y": 26},
-        {"x": 296, "y": 25},
-        {"x": 297, "y": 25},
-        {"x": 298, "y": 24},
-        {"x": 299, "y": 22},
-        {"x": 299, "y": 20},
-        {"x": 300, "y": 17},
-        {"x": 301, "y": 16},
-        {"x": 302, "y": 15},
-        {"x": 302, "y": 14},
-        {"x": 304, "y": 11},
-        {"x": 308, "y": 6},
-        {"x": 314, "y": -1},
-        {"x": 319, "y": -9},
-        {"x": 324, "y": -13},
-        {"x": 327, "y": -16},
-        {"x": 327, "y": -17},
-        {"x": 328, "y": -17},
-        {"x": 331, "y": -18},
-        {"x": 334, "y": -22},
-        {"x": 337, "y": -24},
-        {"x": 339, "y": -26},
-        {"x": 339, "y": -26}
-      ]
+  public ellipseShape: CoCanvasShape = {
+    id: '6adfb34dCGfd7',
+    type_enum: 'ELLIPSE',
+    ellipse: {
+      center_x: 0,
+      center_y: 0,
+      radius_x: 0,
+      radius_y: 0
     },
-    background_color: 'rgba(0,0,0,0)',
     line_width: this.canvas_state.currentStrokeWidth,
     stroke_color: 'green',
     isDragging: false,
@@ -264,12 +110,98 @@ export class CanvasComponent implements OnInit {
     touchOffsetY: 0,
     shape_manager: this.shape_manager
   };
-  constructor() {
+  public lineShape: CoCanvasShape = {
+    id: '6adfb34dCGfd7',
+    type_enum: 'LINE',
+    line: {
+      start_x: 0,
+      start_y: 0,
+      end_x: 0,
+      end_y: 0,
+      lineCap: 'round',
+      lineJoin: 'round'
+    },
+    line_width: this.canvas_state.currentStrokeWidth,
+    stroke_color: this.canvas_state.currentStrokeColor,
+    isDragging: false,
+    isSelected: false,
+    touchOffsetX: 0,
+    touchOffsetY: 0,
+    shape_manager: this.shape_manager
+  };
+  public arrowShape: CoCanvasShape = {
+    id: '6adfb34dCGfd7',
+    type_enum: 'ARROW',
+    arrow: {
+      start_x: 0,
+      start_y: 0,
+      end_x: 0,
+      end_y: 0
+    },
+    line_width: this.canvas_state.currentStrokeWidth,
+    stroke_color: this.canvas_state.currentStrokeColor,
+    isDragging: false,
+    isSelected: false,
+    touchOffsetX: 0,
+    touchOffsetY: 0,
+    shape_manager: this.shape_manager
+  };
+  public textShape: CoCanvasShape = {
+    id: '6adfb34dCGfd7',
+    type_enum: 'TEXT',
+    text: {
+      text: 'Hello World',
+      start_x: 0,
+      start_y: 0,
+      font_size: '16'
+    },
+    line_width: this.canvas_state.currentStrokeWidth,
+    stroke_color: this.canvas_state.currentStrokeColor,
+    isDragging: false,
+    isSelected: false,
+    touchOffsetX: 0,
+    touchOffsetY: 0,
+    shape_manager: this.shape_manager
+  };
+  constructor(public shapeService: WebsocketShapeService) {
     const body = document.querySelector('body');
     body?.setAttribute('style', 'overflow: hidden');
   }
-
+  connectToShapeService(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.shapeService.connect().subscribe({
+        next: async (data: any) => {
+          console.log('Data from server: ', data.data);
+          this.shapes = data.data;
+          this.drawAllShape(this.shapes);
+          resolve();
+        },
+        error: async (error: any) => {
+          console.error('Error from server: ', error);
+          reject();
+        }
+      });
+    })
+  }
   ngOnInit(): void {
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      console.log(e);
+      console.log('right click');
+    });
+    this.connectToShapeService().then(() => {
+      console.log('Connected to shape service');
+    }).catch(() => {
+      console.error('Failed to connect to shape service');
+    });
+    window.addEventListener('storage', (e) => {
+      if(e.key === 'shapes') {
+        this.shapeService.sendMessage({type: 'SHAPE', data: JSON.parse(e.newValue ?? '[]')});
+        this.shapes = JSON.parse(e.newValue ?? '[]');
+        this.drawAllShape(this.shapes);
+      }
+    });
   }
   ngAfterViewInit(): void {
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
@@ -278,293 +210,458 @@ export class CanvasComponent implements OnInit {
     canvas.onmouseup = this.mouseUp();
     if(localStorage && localStorage.getItem('shapes')) {
       this.shapes = JSON.parse(localStorage.getItem('shapes') ?? '[]');
-      this.drawShape(this.shapes);
+      this.drawAllShape(this.shapes);
     }
     else {
-      this.shapes.push(this.shape5);
-      this.drawShape(this.shapes)
+      this.drawAllShape(this.shapes)
+    }
+  }
+  mouseDown() {
+    return (e: MouseEvent) => {
+      const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+      if (e.buttons === 2) {
+        return; // Do nothing if the right mouse button was clicked
+      }
+      switch (this.tooled.enum) {
+        case 'SELECT_TOOL':
+          canvas.style.cursor = 'grabbing';
+          this.start_x = e.clientX;
+          this.start_y = e.clientY;
+          const mouseX = e.clientX;
+          const mouseY = e.clientY;
+          const shapeIndex = this.shapes.findIndex(s => this.mouseInsideShape(mouseX, mouseY, s));
+          if (shapeIndex !== -1) {
+            this.selected_shape = this.shapes[shapeIndex];
+            this.selected_shape.isDragging = true;
+            this.selected_shape.isSelected = true;
+          }
+          break;
+        case 'FREE_DRAW':
+          canvas.style.cursor = 'crosshair';
+          this.freeShape.free_draw?.points.push({x: e.clientX, y: e.clientY});
+          // this.shapes.push(this.freeShape);
+          break;
+        case 'RECTANGLE':
+          canvas.style.cursor = 'crosshair';
+          this.start_x = e.clientX;
+          this.start_y = e.clientY;
+          this.rectShape.id = '54ffb34dCGfd7';
+          this.rectShape.rectangle = {
+            start_x: this.start_x,
+            start_y: this.start_y,
+            width: 0,
+            height: 0
+          }
+          this.shapes = [...this.shapes, this.rectShape];
+          break;
+        case 'ELLIPSE':
+          canvas.style.cursor = 'crosshair';
+          this.start_x = e.clientX;
+          this.start_y = e.clientY;
+          this.ellipseShape.id = '54ffb34dCGfd7';
+          this.ellipseShape.ellipse = {
+            center_x: this.start_x,
+            center_y: this.start_y,
+            radius_x: 0,
+            radius_y: 0
+          }
+          this.shapes = [...this.shapes, this.ellipseShape];
+          break;
+        case 'LINE':
+          canvas.style.cursor = 'crosshair';
+          this.start_x = e.clientX;
+          this.start_y = e.clientY;
+          this.lineShape.id = '54ffb34dCGfd7';
+          this.lineShape.line = {
+            start_x: this.start_x,
+            start_y: this.start_y,
+            end_x: this.start_x,
+            end_y: this.start_y,
+            lineCap: 'round',
+            lineJoin: 'round'
+          }
+          this.shapes.push(this.lineShape);
+          break;
+        case 'ARROW':
+          canvas.style.cursor = 'crosshair';
+          this.start_x = e.clientX;
+          this.start_y = e.clientY;
+          this.arrowShape.id = '54ffb34dCGfd7';
+          this.arrowShape.arrow = {
+            start_x: this.start_x,
+            start_y: this.start_y,
+            end_x: this.start_x,
+            end_y: this.start_y
+          }
+          this.shapes.push(this.arrowShape);
+          break; 
+      } 
+      canvas.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+      });    
+    }
+  }
+  mouseMove() {
+    return (e: MouseEvent) => {
+      const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+      if (e.button === 2) {
+        return; // Do nothing if the right mouse button was clicked
+      }
+      switch (this.tooled.enum) {
+        case 'SELECT_TOOL':
+          break;
+        case 'FREE_DRAW':
+          if (e.buttons === 1) {
+            canvas.style.cursor = 'crosshair';
+            this.drawFreeDraw(e.clientX, e.clientY, this.freeShape);
+            // this.drawAllShape(this.shapes);
+          }
+          break;
+        case 'RECTANGLE':
+          if (e.buttons === 1) {
+            canvas.style.cursor = 'crosshair';
+            this.rectShape.rectangle = {
+              start_x: this.start_x,
+              start_y: this.start_y,
+              width: e.clientX - this.start_x,
+              height: e.clientY - this.start_y
+            };
+            this.drawAllShape(this.shapes);
+          }
+          break;
+        case 'ELLIPSE':
+          if (e.buttons === 1) {
+            canvas.style.cursor = 'crosshair';
+            this.ellipseShape.ellipse = {
+              center_x: this.start_x,
+              center_y: this.start_y,
+              radius_x: e.clientX - this.start_x,
+              radius_y: e.clientY - this.start_y
+            };
+            this.drawAllShape(this.shapes);
+          }
+          break;
+        case 'LINE':
+          if (e.buttons === 1) {
+            canvas.style.cursor = 'crosshair';
+            this.lineShape.line = {
+              start_x: this.start_x,
+              start_y: this.start_y,
+              end_x: e.clientX,
+              end_y: e.clientY,
+              lineCap: 'round',
+              lineJoin: 'round'
+            };
+            // this.collabDraw();
+            this.drawAllShape(this.shapes);
+          }
+          break;
+        case 'ARROW':
+          if (e.buttons === 1) {
+            canvas.style.cursor = 'crosshair';
+            this.arrowShape.arrow = {
+              start_x: this.start_x,
+              start_y: this.start_y,
+              end_x: e.clientX,
+              end_y: e.clientY
+            };
+            // this.collabDraw();
+            this.drawAllShape(this.shapes);
+          }
+          break;
+        case 'PAN':
+          canvas.style.cursor = 'grab';
+          break;
+      }
     }
   }
   mouseUp() {
     return (e: MouseEvent) => {
+      const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+      if (e.button === 2) {
+        return; // Do nothing if the right mouse button was clicked
+      }
       localStorage.setItem('shapes', JSON.stringify(this.shapes));
       switch (this.tooled.enum) {
+        case 'FREE_DRAW':
+          canvas.style.cursor = 'default';
+          this.start_x = e.clientX;
+          this.start_y = e.clientY;
+          this.drawFreeDraw(e.clientX, e.clientY, this.freeShape);
+          break;
+        case 'RECTANGLE':
+          canvas.style.cursor = 'default';
+          this.drawRectangle(this.start_x, this.start_y, this.rectShape);
+          this.shapes.push(this.rectShape);
+          window.location.reload();
+          break;
+        case 'ELLIPSE':
+          canvas.style.cursor = 'default';
+          this.drawEllipse(this.start_x, this.start_y, this.ellipseShape);
+          this.shapes.push(this.ellipseShape);
+          window.location.reload();
+          break;
+        case 'LINE':
+          canvas.style.cursor = 'default';
+          this.drawLine(this.start_x, this.start_y, this.lineShape);
+          this.shapes.push(this.lineShape);
+          window.location.reload();
+          break;
+        case 'ARROW':
+          canvas.style.cursor = 'default';
+          this.drawArrow(this.start_x, this.start_y, this.arrowShape);
+          this.shapes.push(this.arrowShape);
+          window.location.reload();
+          break;
         case 'SELECT_TOOL':
           if(this.selected_shape){
             const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
             canvas.style.cursor = 'grab';
             this.selected_shape.isDragging = false;
             this.selected_shape.isSelected = false;
-            
           }
           break;
+        case 'PAN':
+          canvas.style.cursor = 'grab';
+          break;
       }
-      
-    }
-  }
-  mouseMove() {
-    return (e: MouseEvent) => {
-      // switch (this.tooled.enum) {
-      //   case 'FREE_DRAW':
-      //     if (e.buttons === 1) {
-      //       this.drawFreeDraw(e.clientX, e.clientY);  
-      //     }
-      //     break;
-      //   case 'SELECT_TOOL':
-      //     if (this.selected_shape && this.selected_shape.isDragging) {
-      //       const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
-      //       canvas.style.cursor = 'grabbing';
-      //       this.selected_shape.start_x = e.clientX - this.selected_shape.touchOffsetX;
-      //       this.selected_shape.start_y = e.clientY - this.selected_shape.touchOffsetY;
-      //       this.drawShape([...this.shapes, this.selected_shape]);
-      //     }
-      //     break;
-      //   case 'ELLIPSE':
-      // }
-        const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
-        canvas.style.cursor = 'grab';
-    }
-  }
-  mouseDown() {
-    return (e: MouseEvent) => {
-      // switch (this.tooled.enum) {
-      //   case 'FREE_DRAW':
-      //     this.start_x = e.clientX;
-      //     this.start_y = e.clientY;
-      //     this.drawFreeDraw(e.clientX, e.clientY);
-      //     break;
-      //   case 'SELECT_TOOL':
-      //     this.selected_shape = this.shapes.find(shape => this.mouseInsideShape(e.clientX, e.clientY, shape)) as CoCanvasShape;
-      //     if(this.selected_shape) {
-      //       const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
-      //       canvas.style.cursor = 'grabbing';
-      //       this.selected_shape.isDragging = true;
-      //       this.selected_shape.isSelected = true;
-      //       this.selected_shape.touchOffsetX = e.clientX - this.selected_shape.start_x;
-      //       this.selected_shape.touchOffsetY = e.clientY - this.selected_shape.start_y;
-      //     }
-      //     this.start_x = e.clientX;
-      //     this.start_y = e.clientY;
-      //     break;
-      // }
-            
     }
   }
   mouseInsideShape(x: number, y: number, shape: CoCanvasShape): boolean {
-    // switch (shape.type_enum) {
-    //   case 'RECTANGLE':
-    //     return x >= shape.start_x && x <= shape.start_x + (shape.width ?? 0) && y >= shape.start_y && y <= shape.start_y + (shape.height ?? 0);
-      
-    //   case 'ELLIPSE':
-    //     return Math.pow((x - shape.start_x), 2) / Math.pow((shape.radius ?? 0), 2) + Math.pow((y - shape.start_y), 2) / Math.pow((shape.radius ?? 0), 2) <= 1;
-      
-    //   case 'LINE':
-    //     return x >= shape.start_x && x <= shape.start_x + (shape.length ?? 0) * Math.cos((shape.angle ?? 0) * Math.PI / 180) && y >= shape.start_y - 20 && y <= shape.start_y + 20 + (shape.length ?? 0) * Math.sin((shape.angle ?? 0) * Math.PI / 180);
-      
-    //   case 'ARROW':
-    //     return true;
-      
-    //   case 'FREE_DRAW':
-    //     return true;
-      
-    //   case 'TEXT':
-    //     return true;
-       
-    //   default:
-    //     return false;
-    // }
+    switch (shape.type_enum) {
+      case 'RECTANGLE':
+        if (x > (shape.rectangle?.start_x ?? 0) && x < (shape.rectangle?.start_x ?? 0) + (shape.rectangle?.width ?? 0) && y > (shape.rectangle?.start_y ?? 0) && y < (shape.rectangle?.start_y ?? 0) + (shape.rectangle?.height ?? 0)) {
+          return true;
+        }
+        break;
+      case 'ELLIPSE':
+        const radius_x = Math.abs(shape.ellipse?.radius_x ?? 0);
+        const radius_y = Math.abs(shape.ellipse?.radius_y ?? 0);
+        if (Math.pow(x - (shape.ellipse?.center_x ?? 0), 2) / Math.pow(radius_x, 2) + Math.pow(y - (shape.ellipse?.center_y ?? 0), 2) / Math.pow(radius_y, 2) <= 1) {
+          return true;
+        }
+        break;
+      case 'LINE':
+        const x1 = shape.line?.start_x ?? 0;
+        const y1 = shape.line?.start_y ?? 0;
+        const x2 = shape.line?.end_x ?? 0;
+        const y2 = shape.line?.end_y ?? 0;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        if (Math.abs(dy * x - dx * y + x2 * y1 - y2 * x1) / Math.sqrt(dy * dy + dx * dx) <= 5) {
+          return true;
+        }
+        break;
+    }
 
     return false;
   }
-
-  drawShape(shapes: CoCanvasShape[]): void {
+  drawAllShape(shapes: CoCanvasShape[]): void {
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     if (ctx) {
       for (let shape of shapes) {
-        // switch (shape.type_enum) {
-        //   case 'RECTANGLE':
-        //     ctx.strokeStyle = shape.stroke_color;
-        //     ctx.lineWidth = shape.line_width;
-        //     ctx.beginPath();
-        //     const radius = this.canvas_state.currentRoundness;
-        //     const x = shape.start_x;
-        //     const y = shape.start_y;
-        //     const width = shape.width ?? 0;
-        //     const height = shape.height ?? 0;
-        //     ctx.moveTo(x + radius, y);
-        //     ctx.lineTo(x + width - radius, y);
-        //     ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        //     ctx.lineTo(x + width, y + height - radius);
-        //     ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        //     ctx.lineTo(x + radius, y + height);
-        //     ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        //     ctx.lineTo(x, y + radius);
-        //     ctx.quadraticCurveTo(x, y, x + radius, y);
-        //     ctx.stroke();
-        //     break;
-          
-        //   case 'ELLIPSE':
-        //     ctx.strokeStyle = shape.stroke_color;
-        //     ctx.lineWidth = shape.line_width;
-        //     ctx.beginPath();
-        //     ctx.ellipse(shape.start_x, shape.start_y, (shape.radius ?? 0), (shape.radius ?? 0), 0, 0, 2 * Math.PI);
-        //     ctx.stroke();
-        //     break;
-          
-        //   case 'LINE':
-        //     ctx.strokeStyle = shape.stroke_color;
-        //     ctx.lineWidth = shape.line_width;
-        //     ctx.beginPath();
-        //     ctx.moveTo(shape.start_x, shape.start_y);
-        //     ctx.lineTo(shape.start_x + (shape.length ?? 0) * Math.cos((shape.angle ?? 0) * Math.PI / 180), shape.start_y + (shape.length ?? 0) * Math.sin((shape.angle ?? 0) * Math.PI / 180));
-        //     ctx.stroke();
-        //     break;
-          
-        //   case 'ARROW':
-        //     ctx.strokeStyle = shape.stroke_color;
-        //     ctx.lineWidth = shape.line_width;
-        //     ctx.beginPath();
-        //     ctx.moveTo(shape.start_x, shape.start_y);
-        //     ctx.lineTo(shape.start_x + (shape.length ?? 0) * Math.cos((shape.angle ?? 0) * Math.PI / 180), shape.start_y + (shape.length ?? 0) * Math.sin((shape.angle ?? 0) * Math.PI / 180));
-        //     ctx.stroke();
-        //     break;
-
-        //   case 'FREE_DRAW':
-        //     ctx.strokeStyle = shape.stroke_color;
-        //     ctx.lineWidth = shape.line_width;
-        //     ctx.lineJoin = 'round';
-        //     ctx.lineCap = 'round';
-        //     ctx.beginPath();
-        //     ctx.moveTo(shape.start_x, shape.start_y);
-        //     ctx.lineTo(shape.start_x, shape.start_y);
-        //     ctx.stroke();
-        //     break;
-        // }
         switch (shape.type_enum) {
           case 'RECTANGLE':
-            ctx.strokeStyle = shape.stroke_color;
-            ctx.lineWidth = shape.line_width;
-            ctx.beginPath();
-            const radius = this.canvas_state.currentRoundness;
-            const x = shape.rectangle?.start_x ?? 0;
-            const y = shape.rectangle?.start_y ?? 0;
-            const width = shape.rectangle?.width ?? 0;
-            const height = shape.rectangle?.height ?? 0;
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-            ctx.lineTo(x + radius, y + height);
-            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-            ctx.lineTo(x, y + radius);
-            ctx.quadraticCurveTo(x, y, x + radius, y);
-            ctx.stroke();
+            this.drawRectangle(shape.rectangle?.start_x ?? 0, shape.rectangle?.start_y ?? 0, shape);
             break;
-          
           case 'ELLIPSE':
-            ctx.strokeStyle = shape.stroke_color;
-            ctx.lineWidth = shape.line_width;
-            ctx.beginPath();
-            ctx.ellipse(shape.ellipse?.center_x ?? 0, shape.ellipse?.center_y ?? 0, (shape.ellipse?.radius_x ?? 0), (shape.ellipse?.radius_y ?? 0), 0, 0, 2 * Math.PI);
-            ctx.stroke();
+            this.drawEllipse(shape.ellipse?.center_x ?? 0, shape.ellipse?.center_y ?? 0, shape);
             break;
-
           case 'LINE':
-            ctx.strokeStyle = shape.stroke_color;
-            ctx.lineWidth = shape.line_width;
-            ctx.lineCap = shape.line?.lineCap as CanvasLineCap ?? 'round';
-            ctx.lineJoin = shape.line?.lineJoin as CanvasLineJoin ?? 'round';
-            ctx.beginPath();
-            ctx.moveTo(shape.line?.start_x ?? 0, shape.line?.start_y ?? 0);
-            ctx.lineTo(shape.line?.end_x ?? 0, shape.line?.end_y ?? 0);
-            ctx.stroke();
+            this.drawLine(shape.line?.start_x ?? 0, shape.line?.start_y ?? 0, shape);
             break;
-
           case 'ARROW':
-            const toy = shape.arrow?.end_y ?? 0;
-            const tox = shape.arrow?.end_x ?? 0;
-            const fromy = shape.arrow?.start_y ?? 0;
-            const fromx = shape.arrow?.start_x ?? 0;
-            var headlen = 10;
-            var angle = Math.atan2(toy-fromy,tox-fromx);
-            ctx.strokeStyle = shape.stroke_color;
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(fromx, fromy);
-            ctx.lineTo(tox, toy);
-            ctx.lineWidth = this.canvas_state.currentStrokeWidth;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(tox, toy);
-            ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),
-                        toy-headlen*Math.sin(angle-Math.PI/7));
-            ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/7),
-                        toy-headlen*Math.sin(angle+Math.PI/7));
-            ctx.lineTo(tox, toy);
-            ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),
-                        toy-headlen*Math.sin(angle-Math.PI/7));
-            ctx.stroke();
-            ctx.restore();
+            this.drawArrow(shape.arrow?.start_x ?? 0, shape.arrow?.start_y ?? 0, shape);
             break
-          
           case 'FREE_DRAW':
-            for (let point of shape.free_draw?.points ?? []) {
-              point.x += shape.free_draw?.start_x ?? 0;
-              point.y += shape.free_draw?.start_y ?? 0;
+            for (let i = 0; i < (shape.free_draw?.points.length ?? 0); i++) {
+              this.drawFreeDraw(shape.free_draw?.points[i].x ?? 0, shape.free_draw?.points[i].y ?? 0, shape);
             }
-            const initX = shape.free_draw?.points[0].x ?? 0 + (shape.free_draw?.start_x ?? 0);
-            const initY = shape.free_draw?.points[0].y ?? 0 + (shape.free_draw?.start_y ?? 0);
-            ctx.strokeStyle = shape.stroke_color;
-            ctx.lineWidth = shape.line_width;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(initX, initY);
-            for (let i = 1; i < (shape.free_draw?.points.length ?? 0); i++) {
-              ctx.lineTo(shape.free_draw?.points[i].x ?? 0 + (shape.free_draw?.start_x ?? 0), shape.free_draw?.points[i].y ?? 0 + (shape.free_draw?.start_y ?? 0));
+            break;
+          case 'TEXT':
+            ctx.font = `${shape.text?.font_size}px Arial`;
+            ctx.fillStyle = shape.stroke_color;
+            ctx.fillText(shape.text?.text ?? '', shape.text?.start_x ?? 0, shape.text?.start_y ?? 0);
+            break;
+          case 'ERASER':
+            const mouseX = shape.eraser?.mouse_x ?? 0;
+            const mouseY = shape.eraser?.mouse_y ?? 0;
+            const shapeIndex = shapes.findIndex(s => this.mouseInsideShape(mouseX, mouseY, s));
+            if (shapeIndex !== -1) {
+              shapes.splice(shapeIndex, 1);
+              this.drawAllShape(shapes);
             }
-            ctx.stroke();
             break;
         }
-
       }
     }
   }
+  drawFreeDraw(x: number, y: number, shape: CoCanvasShape): void {
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+        ctx.beginPath();
+        if ((shape.free_draw?.points.length) === 0) {
+            // Start drawing immediately when there are no points
+            ctx.moveTo(x, y);
+            shape.free_draw?.points.push({ x, y });
+            ctx.stroke();
+        } else {
+            const points = shape.free_draw?.points ?? [];
+            const numPoints = points.length;
+            if (numPoints >= 3) {
+                const cp1x = points[numPoints - 2].x;
+                const cp1y = points[numPoints - 2].y;
+                const cp2x = x;
+                const cp2y = y;
 
+                const p1x = points[numPoints - 3].x;
+                const p1y = points[numPoints - 3].y;
+                const p2x = points[numPoints - 1].x;
+                const p2y = points[numPoints - 1].y;
+
+                ctx.moveTo(p1x, p1y);
+                ctx.strokeStyle = shape.stroke_color;
+                ctx.lineWidth = shape.line_width;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2x, p2y);
+            } else {
+                const p = points[points.length - 1];
+                const lastPoint = points[points.length - 1];
+                const controlX = (lastPoint.x + x) / 2;
+                const controlY = (lastPoint.y + y) / 2;
+                ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, controlX, controlY);
+            }
+            shape.free_draw?.points.push({ x, y });
+            ctx.stroke();
+        }
+    }
+    // this.collabDraw();
+  }
+  drawRectangle(x: number, y: number, shape: CoCanvasShape): void {
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // take care of negative height and width by chaging the radius to negative
+      ctx.strokeStyle = shape.stroke_color;
+      ctx.lineWidth = shape.line_width;
+      ctx.beginPath();
+      const radius = this.canvas_state.currentRoundness;
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + (shape.rectangle?.width ?? 0) - radius, y);
+      ctx.quadraticCurveTo(x + (shape.rectangle?.width ?? 0), y, x + (shape.rectangle?.width ?? 0), y + radius);
+      ctx.lineTo(x + (shape.rectangle?.width ?? 0), y + (shape.rectangle?.height ?? 0) - radius);
+      ctx.quadraticCurveTo(x + (shape.rectangle?.width ?? 0), y + (shape.rectangle?.height ?? 0), x + (shape.rectangle?.width ?? 0) - radius, y + (shape.rectangle?.height ?? 0));
+      ctx.lineTo(x + radius, y + (shape.rectangle?.height ?? 0));
+      ctx.quadraticCurveTo(x, y + (shape.rectangle?.height ?? 0), x, y + (shape.rectangle?.height ?? 0) - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.stroke();
+    }
+    // this.collabDraw();
+  }
+  drawEllipse(x: number, y: number, shape: CoCanvasShape): void {
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.strokeStyle = shape.stroke_color;
+      ctx.lineWidth = shape.line_width;
+      ctx.beginPath();
+      // take care of negative radius
+      const radius_x = Math.abs(shape.ellipse?.radius_x ?? 0);
+      const radius_y = Math.abs(shape.ellipse?.radius_y ?? 0);
+      const rotation = 0;
+      const startAngle = 0;
+      const endAngle = 2 * Math.PI;
+      const anticlockwise = false;
+      ctx.ellipse(x, y, radius_x, radius_y, rotation, startAngle, endAngle, anticlockwise);
+      ctx.stroke();
+    }
+  }
+  drawLine(x: number, y: number, shape: CoCanvasShape): void {
+    // draw line
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.strokeStyle = shape.stroke_color;
+      ctx.lineWidth = shape.line_width;
+      ctx.beginPath();
+      ctx.moveTo(shape.line?.start_x ?? 0, shape.line?.start_y ?? 0);
+      ctx.lineTo(shape.line?.end_x ?? 0, shape.line?.end_y ?? 0);
+      ctx.stroke();
+    }
+  }
+  drawArrow(x: number, y: number, shape: CoCanvasShape): void {
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const tox = shape.arrow?.end_x ?? 0;
+      const toy = shape.arrow?.end_y ?? 0;
+      const fromx = shape.arrow?.start_x ?? 0;
+      const fromy = shape.arrow?.start_y ?? 0;
+      var headlen = 10;
+      var angle = Math.atan2(toy-fromy,tox-fromx);
+      ctx.strokeStyle = shape.stroke_color;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(fromx, fromy);
+      ctx.lineTo(tox, toy);
+      ctx.lineWidth = this.canvas_state.currentStrokeWidth;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tox, toy);
+      ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),
+                  toy-headlen*Math.sin(angle-Math.PI/7));
+      ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/7),
+                  toy-headlen*Math.sin(angle+Math.PI/7));
+      ctx.lineTo(tox, toy);
+      ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),
+                  toy-headlen*Math.sin(angle-Math.PI/7));
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+  eraseShape(x: number, y: number, shape:CoCanvasShape): void {
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const mouseX = x;
+      const mouseY = y;
+      const shapeIndex = this.shapes.findIndex(s => this.mouseInsideShape(mouseX, mouseY, s));
+      if (shapeIndex !== -1) {
+        this.shapes.splice(shapeIndex, 1);
+        this.drawAllShape(this.shapes);
+      }
+    }
+  }
+  // draw the shapes
+  // save the shapes to local storage
   // drawFreeDraw(x: number, y: number): void {
   //   const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
   //   const ctx = canvas.getContext('2d');
   //   if (ctx) {
-  //     ctx.strokeStyle = this.canvas_state.currentStrokeColor;
-  //     ctx.lineWidth = this.canvas_state.currentStrokeWidth;
+  //     ctx?.beginPath();
+  //     if (this.freeShape.free_draw?.points.length === 0) {
+  //       // Start drawing immediately when there are no points
+  //       ctx.moveTo(x, y);
+  //       this.freeShape.free_draw?.points.push({ x, y });
+  //     } else {
+  //       const p = this.freeShape.free_draw?.points ?? [];
+  //       const lastPoint = p[p.length - 1];
+  //       const controlX = (lastPoint.x + x) / 2;
+  //       const controlY = (lastPoint.y + y) / 2;
+  //       ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, controlX, controlY);
+  //       this.freeShape.free_draw?.points.push({ x, y });
+  //     }
+  //     ctx.strokeStyle = this.freeShape.stroke_color;
+  //     ctx.lineWidth = this.freeShape.line_width;
   //     ctx.lineJoin = 'round';
   //     ctx.lineCap = 'round';
-  //     ctx.beginPath();
-  //     ctx.moveTo(this.start_x, this.start_y);
-  //     ctx.lineTo(x, y);
   //     ctx.stroke();
-  //     this.start_x = x;
-  //     this.start_y = y;
   //   }
-  //   const drawnShape: CoCanvasShape = {
-  //     id: '6adfb34dCGfd8',
-  //     type_enum: 'FREE_DRAW',
-  //     start_x: this.start_x,
-  //     start_y: this.start_y,
-  //     line_width: this.canvas_state.currentStrokeWidth,
-  //     stroke_color: this.canvas_state.currentStrokeColor,
-  //     isDragging: false,
-  //     isSelected: false,
-  //     width: 50,
-  //     height: 50,
-  //     touchOffsetX: 0,
-  //     touchOffsetY: 0,
-  //     shape_manager: this.shape_manager
-  //   };
-  //   this.shapes.push(drawnShape);
-    
   // }
+  // 
 }

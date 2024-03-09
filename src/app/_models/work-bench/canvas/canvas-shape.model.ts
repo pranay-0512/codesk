@@ -34,11 +34,14 @@ export class CoCanvasShape{
         start_x: number;
         start_y: number;
         text: string;
+        font_size: string;
     }
     free_draw?: {
-        start_x: number;
-        start_y: number;
         points: {x: number, y: number}[];
+    }
+    eraser?: {
+        mouse_x: number;
+        mouse_y: number;
     }
     // start_x!: number; // x coordinate of the starting point // center point for ellipse;
     // start_y!: number; // y coordinate of the starting point // center point for ellipse;
@@ -50,7 +53,7 @@ export class CoCanvasShape{
     line_width!: number;
     stroke_color!: string;
     background_color?: string;
-    type_enum!: 'RECTANGLE' | 'ELLIPSE' | 'LINE' | 'ARROW' | 'FREE_DRAW' | 'TEXT';
+    type_enum!: 'RECTANGLE' | 'ELLIPSE' | 'LINE' | 'ARROW' | 'FREE_DRAW' | 'TEXT' | 'ERASER';
     shape_manager!: ShapeManager;
 }
 

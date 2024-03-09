@@ -8,6 +8,7 @@ import { SharedModule } from './components/shared/shared.module';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
+import { WebsocketShapeService } from './_services/websocket/websocket-shape.service';
 
 
 @NgModule({
@@ -24,7 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
     BrowserAnimationsModule,
     MatIconModule
   ],
-  providers: [],
+  providers: [WebsocketShapeService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -54,4 +54,10 @@ export const tools: Array<CoCanvasTool> = [
       icon: 'format_size',
       is_active: false
     },
+    {
+      name: 'Eraser tool',
+      enum: 'ERASER',
+      icon: 'delete',
+      is_active: false
+    }
 ];

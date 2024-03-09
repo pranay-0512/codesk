@@ -23,6 +23,7 @@ export class CoCanvasState {
     relativeScrollY!: number
     selectedElementIds!: SelectedElementIds
     viewBackgroundColor!: string
+    font_family!: string;
     zoom!: Zoom
 }
 export class ActiveTool {
