@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { InfiniteCanvasRenderingContext2D } from 'ef-infinite-canvas';
 import { CoCanvasTool } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
 
 @Component({
@@ -9,6 +10,8 @@ import { CoCanvasTool } from 'src/app/_models/work-bench/canvas/canvas-tool.mode
 export class WorkBenchComponent implements OnInit {
   constructor() { }
   public selectedTool!: CoCanvasTool;
+  public infCanvas!: HTMLCanvasElement;
+  public ctx!: InfiniteCanvasRenderingContext2D;
   ngOnInit(): void {
     console.log("work bench component loaded");
   }
@@ -16,11 +19,14 @@ export class WorkBenchComponent implements OnInit {
     this.selectedTool = event as unknown as CoCanvasTool;
   }
   clearCanvas(): void {
-    localStorage.removeItem('shapes');
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(canvas) {
+      this.infCanvas = canvas;
+      this.ctx = this.infCanvas.getContext('2d') as InfiniteCanvasRenderingContext2D;
+    }
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, Infinity, Infinity);
+      localStorage.removeItem('shapes');
     }
     window.location.reload();
   }
