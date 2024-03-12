@@ -7,8 +7,8 @@ export class CoCanvasShape{
     rectangle?: {
         start_x: number;
         start_y: number;
-        width: number;
-        height: number;
+        end_x: number;
+        end_y: number;
     }
     ellipse?: {
         center_x: number;
@@ -37,7 +37,9 @@ export class CoCanvasShape{
         font_size: string;
     }
     free_draw?: {
-        points: {x: number, y: number}[];
+        startingPoint: [x: number, y: number];
+        lastCommittedPoint: [x: number, y: number];
+        points: [x: number, y: number][];
     }
     eraser?: {
         mouse_x: number;
