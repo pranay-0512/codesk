@@ -9,6 +9,7 @@ import { ToolsComponent } from './overlay-components/tools/tools.component';
 import { UtilityComponent } from './overlay-components/utility/utility.component';
 import { SharedModule } from '../shared/shared.module';
 import { MatIconModule } from '@angular/material/icon';
+import { PalleteComponent } from './overlay-components/pallete/pallete.component';
 
 
 
@@ -19,7 +20,8 @@ import { MatIconModule } from '@angular/material/icon';
     CreateWorkBenchComponent,
     DropdownMenuComponent,
     ToolsComponent,
-    UtilityComponent
+    UtilityComponent,
+    PalleteComponent
   ],
   imports: [
     CommonModule,

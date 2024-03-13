@@ -9,6 +9,7 @@ export class CoCanvasShape{
         start_y: number;
         end_x: number;
         end_y: number;
+        roundness: number;
     }
     ellipse?: {
         center_x: number;
