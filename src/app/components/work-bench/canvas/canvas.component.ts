@@ -6,14 +6,16 @@ import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-to
 import { WebsocketShapeService } from 'src/app/_services/websocket/websocket-shape.service';
 import InfiniteCanvas, { InfiniteCanvasRenderingContext2D } from 'ef-infinite-canvas'
 import {v4 as uuidv4} from 'uuid';
+import { fabric } from 'fabric';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
   styleUrls: ['./canvas.component.scss']
 })
 export class CanvasComponent implements OnInit {
-  @Input() selectedTool: CoCanvasTool = tools[2];
-  public tooled = tools[3]; 
+  @Input() selectedTool!: CoCanvasTool;
+  public tooled = tools[2]; 
+  public fabricCanvas!: fabric.Canvas;
   // public tooled = tools[6]; 
   public is_dragging = false;
   public start_x = 0;
@@ -33,16 +35,16 @@ export class CanvasComponent implements OnInit {
   };
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
-    theme: 'dark',
+    theme: 'light',
     currentFillStyle: 'rgba(0,0,0,0)',
     currentFontFamily: 0,
     currentFontSize: 16,
     currentOpacity: 1,
     currentRoughness: 1,
-    currentStrokeColor: 'red',
-    currentRoundness: 10,
+    currentStrokeColor: 'black',
+    currentRoundness: 5,
     currentStrokeStyle: 'solid',
-    currentStrokeWidth: 2,
+    currentStrokeWidth: 5,
     currentTextAlign: 'left',
     editingGroupId: null,
     activeTool: {
@@ -85,54 +87,149 @@ export class CanvasComponent implements OnInit {
     touchOffsetY: 0,
     shape_manager: this.shape_manager
   };
-  public textShape: CoCanvasShape = {
-    id: '6adfb34dCGfd7',
-    type_enum: 'TEXT',
-    text: {
-      text: 'Hello World',
-      start_x: 0,
-      start_y: 0,
-      font_size: '16'
-    },
-    line_width: this.canvas_state.currentStrokeWidth,
-    stroke_color: this.canvas_state.currentStrokeColor,
-    isDragging: false,
-    isSelected: false,
-    touchOffsetX: 0,
-    touchOffsetY: 0,
-    shape_manager: this.shape_manager
-  };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   constructor(public shapeService: WebsocketShapeService) {
     const body = document.querySelector('body');
     body?.setAttribute('style', 'overflow: hidden');
-    // add event listener for change in local storage
     window.addEventListener('storage', (event) => {
       if (event.key === 'shapes') {
         this.shapes = JSON.parse(localStorage.getItem('shapes') ?? '[]');
         this.drawAllShapes(this.shapes);
       }
     });
+  }
+  ngOnInit(): void {
+    // this.fabricCanvas = new fabric.Canvas('co_canvas');
+    // for (const shape of this.shapes) {
+    //   switch (shape.type_enum) {
+    //     case 'RECTANGLE':
+    //       const rect = new fabric.Rect({
+    //         left: shape.rectangle?.start_x,
+    //         top: shape.rectangle?.start_y,
+    //         fill: 'rgba(0,0,0,0)',
+    //         stroke: shape.stroke_color,
+    //         strokeWidth: shape.line_width,
+    //         width: shape.rectangle?.end_x ?? 0 - (shape.rectangle?.start_x ?? 0),
+    //         height: shape.rectangle?.end_y ?? 0 - (shape.rectangle?.start_y ?? 0),
+    //         selectable: true
+    //       });
+    //       rect.set('data', {id: shape.id});
+    //       rect.on('selected', (e: any) => {
+    //         console.log('selected', e);
+    //       });
+    //       this.fabricCanvas.add(rect);
+    //       break;
+
+    //     case 'ELLIPSE':
+    //       const ellipse = new fabric.Ellipse({
+    //         left: shape.ellipse?.center_x,
+    //         top: shape.ellipse?.center_y,
+    //         fill: 'rgba(0,0,0,0)',
+    //         stroke: shape.stroke_color,
+    //         strokeWidth: shape.line_width,
+    //         rx: shape.ellipse?.radius_x,
+    //         ry: shape.ellipse?.radius_y,
+    //         selectable: false
+    //       });
+    //       this.fabricCanvas.add(ellipse);
+    //       break;
+
+    //     case 'LINE':
+    //       const line = new fabric.Line([shape.line?.start_x ?? 0, shape.line?.start_y ?? 0, shape.line?.end_x ?? 0, shape.line?.end_y ?? 0], {
+    //         fill: shape.stroke_color,
+    //         stroke: shape.stroke_color,
+    //         strokeWidth: shape.line_width,
+    //         selectable: false
+    //       });
+    //       this.fabricCanvas.add(line);
+    //       break;
+        
+    //     case 'ARROW':
+    //       const arrow = new fabric.Line([shape.arrow?.start_x ?? 0, shape.arrow?.start_y ?? 0, shape.arrow?.end_x ?? 0, shape.arrow?.end_y ?? 0], {
+    //         fill: shape.stroke_color,
+    //         stroke: shape.stroke_color,
+    //         strokeWidth: shape.line_width,
+    //         selectable: false
+    //       });
+    //       this.fabricCanvas.add(arrow);
+    //       break;
+    //   }
+    // }
+    console.log(this.fabricCanvas)
+    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+    const canvasContainer = document.getElementById('canvas_container');
+    console.log(this.tooled.enum)
+    if(canvas) {
+      this.infCanvas = canvas;
+      this.ctx = this.infCanvas.getContext('2d');
+      console.log(this.infCanvas.width, this.infCanvas.height)
+      this.infCanvas.onmousedown = this.mouseDown();
+      this.infCanvas.onmousemove = this.mouseMove();
+      this.infCanvas.onmouseup = this.mouseUp();
+      window.addEventListener('keydown', this.keyDown.bind(this));
+      window.addEventListener('keyup', this.keyUp.bind(this));      
+      if(localStorage) {
+        this.shapes = JSON.parse(localStorage.getItem('shapes') ?? '[]');
+        this.drawAllShapes(this.shapes);
+      }
+      else {
+        this.drawAllShapes([])
+      }
+      this.ctx.beginPath();
+      this.ctx.lineWidth = 0.5;
+      this.ctx.strokeStyle = 'rgba(1, 1, 203, 0.4)';
+      for (let i = 0; i < this.infCanvas.width; i += this.canvas_state.gridSize) {
+        this.ctx.moveTo(i, 0);
+        this.ctx.lineTo(i, this.infCanvas.height);
+      }
+      for (let i = 0; i < this.infCanvas.height; i += this.canvas_state.gridSize) {
+        this.ctx.moveTo(0, i);
+        this.ctx.lineTo(this.infCanvas.width, i);
+      }
+      this.ctx.stroke();
+      let scaleFactor = this.canvas_state.zoom.value;
+      const zoomSensitivity = 0.1;
+      const body = document.querySelector('body');
+      if(body){
+        body.onkeydown = (event: KeyboardEvent) => {
+          if(event.key === 'z' && event.ctrlKey){
+            this.shapes.pop();
+            localStorage.setItem('shapes', JSON.stringify(this.shapes));
+            this.drawAllShapes(this.shapes);
+          }
+        }
+      }
+      if(canvasContainer){
+        canvasContainer.onwheel = (event: WheelEvent) => {
+          if(!event.ctrlKey) {
+            canvasContainer.scrollLeft += event.deltaY;
+            canvasContainer.scrollTop += event.deltaX;
+            this.drawAllShapes(this.shapes);
+            return;
+          }
+          event.preventDefault();
+          const delta = event.deltaY;
+          const zoomIn = delta < 0;
+          const zoomOut = delta > 0;
+          if (zoomIn) {
+            scaleFactor += zoomSensitivity;
+            if(scaleFactor > 2) {
+              scaleFactor = 2;
+              return;
+            }
+          } else if (zoomOut) {
+            scaleFactor -= zoomSensitivity;
+            if(scaleFactor < 0.1) {
+              scaleFactor = 0.1;
+              return;
+            }
+          }
+          this.canvas_state.zoom.value = scaleFactor;
+          this.infCanvas.style.transform = `scale(${scaleFactor})`;
+          console.log("zoomSens" ,zoomSensitivity, "scaleFac" , scaleFactor)
+          console.log(event.deltaY)
+        };
+      }
+    }
   }
   connectToShapeService(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -150,57 +247,6 @@ export class CanvasComponent implements OnInit {
       });
     })
   }
-  ngOnInit(): void {
-    const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
-    const canvasContainer = document.getElementById('canvas_container');
-    console.log(this.tooled.enum)
-    if(canvas) {
-      this.infCanvas = canvas;
-      this.ctx = this.infCanvas.getContext('2d');
-      console.log(this.infCanvas.width, this.infCanvas.height)
-      this.infCanvas.onmousedown = this.mouseDown();
-      this.infCanvas.onmousemove = this.mouseMove();
-      this.infCanvas.onmouseup = this.mouseUp();
-      window.addEventListener('keydown', this.keyDown.bind(this));
-      window.addEventListener('keyup', this.keyUp.bind(this));      
-      if(localStorage && localStorage.getItem('shapes')) {
-        this.shapes = JSON.parse(localStorage.getItem('shapes') ?? '[]');
-        this.drawAllShapes(this.shapes);
-      }
-      else {
-        this.drawAllShapes(this.shapes)
-      }
-      // create a background grid irrespective of the shapes
-      this.ctx.beginPath();
-      this.ctx.lineWidth = 0.5;
-      this.ctx.strokeStyle = 'rgba(1, 1, 203, 0.4)';
-      for (let i = 0; i < this.infCanvas.width; i += this.canvas_state.gridSize) {
-        this.ctx.moveTo(i, 0);
-        this.ctx.lineTo(i, this.infCanvas.height);
-      }
-      for (let i = 0; i < this.infCanvas.height; i += this.canvas_state.gridSize) {
-        this.ctx.moveTo(0, i);
-        this.ctx.lineTo(this.infCanvas.width, i);
-      }
-      this.ctx.stroke();
-      let scaleFactor = 1.0;
-      const zoomSensitivity = 0.1;
-      if(canvasContainer){
-        canvasContainer.onwheel = (event: WheelEvent) => {
-          event.preventDefault();
-          const zoomIn = event.deltaY < 0;
-          if (zoomIn) {
-            scaleFactor += zoomSensitivity;
-          } else {
-            scaleFactor -= zoomSensitivity;
-          }
-          scaleFactor = Math.max(0.1, Math.min(scaleFactor, 10.0));
-          this.infCanvas.style.transform = `scale(${scaleFactor})`;
-        };
-      }
-
-    }
-  }
   ngViewAfterInit() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     this.infCanvas = new InfiniteCanvas(canvas);
@@ -213,8 +259,8 @@ export class CanvasComponent implements OnInit {
       const startY = Math.min(y1, y2);
       const endY = Math.max(y1, y2);
       this.ctx.strokeStyle = shape.stroke_color;
-      this.ctx.lineWidth = this.canvas_state.currentStrokeWidth;
-      const r = this.canvas_state.currentRoundness;
+      this.ctx.lineWidth = shape.line_width;
+      const r = shape.rectangle?.roundness ?? 0;
       this.ctx.beginPath();
       this.ctx.moveTo(startX + r, startY);
       this.ctx.lineTo(endX - r, startY);
@@ -233,7 +279,7 @@ export class CanvasComponent implements OnInit {
       const radius_x = Math.abs(shape.ellipse?.radius_x ?? 0);
       const radius_y = Math.abs(shape.ellipse?.radius_y ?? 0);
       this.ctx.strokeStyle = shape.stroke_color;
-      this.ctx.lineWidth = this.canvas_state.currentStrokeWidth;
+      this.ctx.lineWidth = shape.line_width;
       this.ctx.beginPath();
       const rotation = 0;
       const startAngle = 0;
@@ -259,7 +305,8 @@ export class CanvasComponent implements OnInit {
               start_x: 0,
               start_y: 0,
               end_x: 0,
-              end_y: 0
+              end_y: 0,
+              roundness: this.canvas_state.currentRoundness
             },
             line_width: this.canvas_state.currentStrokeWidth,
             stroke_color: this.canvas_state.currentStrokeColor,
@@ -369,7 +416,8 @@ export class CanvasComponent implements OnInit {
                 start_x: this.start_x,
                 start_y: this.start_y,
                 end_x: this.end_x,
-                end_y: this.end_y
+                end_y: this.end_y,
+                roundness: this.canvas_state.currentRoundness
               }
               this.drawRectangle(rectShape.rectangle.start_x, rectShape.rectangle.start_y, rectShape.rectangle.end_x, rectShape.rectangle.end_y, rectShape);
             }
@@ -524,308 +572,7 @@ export class CanvasComponent implements OnInit {
         return; 
       }
     }
-  } 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // mouseDown() {
-  //   return (e: MouseEvent) => {
-  //     if (e.buttons === 2) {
-  //       return;
-  //     }
-  //     switch (this.tooled.enum) {
-  //       // case 'SELECT_TOOL':
-  //       //   this.infCanvas.style.cursor = 'grabbing';
-  //       //   this.start_x = e.clientX;
-  //       //   this.start_y = e.clientY;
-  //       //   const mouseX = e.clientX;
-  //       //   const mouseY = e.clientY;
-  //       //   const shapeIndex = this.shapes.findIndex(s => this.mouseInsideShape(mouseX, mouseY, s));
-  //       //   if (shapeIndex !== -1) {
-  //       //     this.selected_shape = this.shapes[shapeIndex];
-  //       //     this.selected_shape.isDragging = true;
-  //       //     this.selected_shape.isSelected = true;
-  //       //   }
-  //       //   break;
-
-  //       // case 'FREE_DRAW':
-  //       //   this.infCanvas.style.cursor = 'crosshair';
-  //       //   if (this.freeShape.free_draw) {
-  //       //     this.freeShape.free_draw.startingPoint = [e.clientX, e.clientY];
-  //       //     this.freeShape.free_draw?.points.push([e.clientX, e.clientY]);
-  //       //     this.shapes.push(this.freeShape);
-  //       //   }
-  //       //   break;
-  //       case 'RECTANGLE':
-  //         this.infCanvas.style.cursor = 'crosshair';
-  //         this.start_x = e.clientX;
-  //         this.start_y = e.clientY;
-  //         this.rectShape.id = '54ffb34dCGfd7';
-  //         this.rectShape.rectangle = {
-  //           start_x: this.start_x,
-  //           start_y: this.start_y,
-  //           width: 0,
-  //           height: 0
-  //         }
-  //         this.shapes = [...this.shapes, this.rectShape];
-  //         break;
-  //       // case 'ELLIPSE':
-  //       //   this.infCanvas.style.cursor = 'crosshair';
-  //       //   this.start_x = e.clientX;
-  //       //   this.start_y = e.clientY;
-  //       //   this.ellipseShape.id = '54ffb34dCGfd7';
-  //       //   this.ellipseShape.ellipse = {
-  //       //     center_x: this.start_x,
-  //       //     center_y: this.start_y,
-  //       //     radius_x: 0,
-  //       //     radius_y: 0
-  //       //   }
-  //       //   this.shapes = [...this.shapes, this.ellipseShape];
-  //       //   break;
-  //       // case 'LINE':
-  //       //   this.infCanvas.style.cursor = 'crosshair';
-  //       //   this.start_x = e.clientX;
-  //       //   this.start_y = e.clientY;
-  //       //   this.lineShape.id = '54ffb34dCGfd7';
-  //       //   this.lineShape.line = {
-  //       //     start_x: this.start_x,
-  //       //     start_y: this.start_y,
-  //       //     end_x: this.start_x,
-  //       //     end_y: this.start_y,
-  //       //     lineCap: 'round',
-  //       //     lineJoin: 'round'
-  //       //   }
-  //       //   this.shapes.push(this.lineShape);
-  //       //   break;
-  //       // case 'ARROW':
-  //       //   this.infCanvas.style.cursor = 'crosshair';
-  //       //   this.start_x = e.clientX;
-  //       //   this.start_y = e.clientY;
-  //       //   this.arrowShape.id = '54ffb34dCGfd7';
-  //       //   this.arrowShape.arrow = {
-  //       //     start_x: this.start_x,
-  //       //     start_y: this.start_y,
-  //       //     end_x: this.start_x,
-  //       //     end_y: this.start_y
-  //       //   }
-  //       //   this.shapes.push(this.arrowShape);
-  //       //   break;
-  //       // case 'PAN':
-  //       //   this.infCanvas.style.cursor = 'grab';
-  //       //   this.start_x = e.clientX;
-  //       //   this.start_y = e.clientY;
-  //       //   break;
-  //     } 
-  //     this.infCanvas.addEventListener('contextmenu', (event: any) => {
-  //       event.preventDefault();
-  //     });    
-  //   }
-  // }
-  // mouseMove() {
-  //   return (e: MouseEvent) => {
-  //     if (e.button === 2) {
-  //       return;
-  //     }
-  //     switch (this.tooled.enum) {
-  //       case 'SELECT_TOOL':
-  //         break;
-  //       case 'FREE_DRAW':
-  //         if (e.buttons === 1) {
-  //           this.infCanvas.style.cursor = 'crosshair';
-  //           // this.drawFreeDraw(e.clientX, e.clientY, this.freeShape);
-  //         }
-  //         break;
-  //       case 'RECTANGLE':
-  //         if (e.buttons === 1) {
-  //           this.infCanvas.style.cursor = 'crosshair';
-  //           this.rectShape.rectangle = {
-  //             start_x: this.start_x,
-  //             start_y: this.start_y,
-  //             width: e.clientX - this.start_x,
-  //             height: e.clientY - this.start_y
-  //           };
-  //           this.drawAllShapes(this.shapes);
-  //         }
-  //         break;
-  //       case 'ELLIPSE':
-  //         if (e.buttons === 1) {
-  //           this.infCanvas.style.cursor = 'crosshair';
-  //           this.ellipseShape.ellipse = {
-  //             center_x: this.start_x,
-  //             center_y: this.start_y,
-  //             radius_x: e.clientX - this.start_x,
-  //             radius_y: e.clientY - this.start_y
-  //           };
-  //           this.drawAllShapes(this.shapes);
-  //         }
-  //         break;
-  //       case 'LINE':
-  //         if (e.buttons === 1) {
-  //           this.infCanvas.style.cursor = 'crosshair';
-  //           this.lineShape.line = {
-  //             start_x: this.start_x,
-  //             start_y: this.start_y,
-  //             end_x: e.clientX,
-  //             end_y: e.clientY,
-  //             lineCap: 'round',
-  //             lineJoin: 'round'
-  //           };
-  //           this.drawAllShapes(this.shapes);
-  //         }
-  //         break;
-  //       case 'ARROW':
-  //         if (e.buttons === 1) {
-  //           this.infCanvas.style.cursor = 'crosshair';
-  //           this.arrowShape.arrow = {
-  //             start_x: this.start_x,
-  //             start_y: this.start_y,
-  //             end_x: e.clientX,
-  //             end_y: e.clientY
-  //           };
-  //           this.drawArrow(this.start_x, this.start_y, this.arrowShape);
-  //           // this.drawAllShapes(this.shapes);
-  //         }
-  //         break;
-  //       case 'PAN':
-  //         // this.infCanvas.style.cursor = 'grab';
-  //         // break;
-  //         if (e.buttons === 1) {
-  //           const dx = e.clientX - this.start_x;
-  //           const dy = e.clientY - this.start_y;
-  //           this.shapes.forEach(shape => {
-  //             // if shape is selected, move it
-  //             // mouseInsideShape
-  //             if (this.mouseInsideShape(e.clientX, e.clientY, shape)) {
-  //             }
-  //             if (shape.type_enum === 'RECTANGLE') {
-  //               if(shape.rectangle?.start_x && shape.rectangle.start_y){
-  //                 shape.rectangle.start_x += dx;
-  //                 shape.rectangle.start_y += dy;
-  //               }
-  //             } else if (shape.type_enum === 'ELLIPSE') {
-  //               if(shape.ellipse?.center_x && shape.ellipse.center_y){
-  //                 shape.ellipse.center_x += dx;
-  //                 shape.ellipse.center_y += dy;
-  //               }
-  //             } else if (shape.type_enum === 'LINE' || shape.type_enum === 'ARROW') {
-  //               if(shape.line?.start_x && shape.line.start_y){
-  //                 shape.line.start_x += dx;
-  //                 shape.line.start_y += dy;
-  //                 shape.line.end_x += dx;
-  //                 shape.line.end_y += dy;
-  //               }
-  //             }
-  //           });
-  //           this.drawAllShapes(this.shapes);
-  //           this.start_x = e.clientX;
-  //           this.start_y = e.clientY;
-  //         }
-  //         break;
-  //     }
-  //   }
-  // }
-  // mouseUp() {
-  //   return (e: MouseEvent) => {
-  //     if (e.button === 2) {
-  //       return;
-  //     }
-  //     switch (this.tooled.enum) {
-  //       case 'FREE_DRAW':
-  //         this.infCanvas.style.cursor = 'default';
-  //         this.start_x = e.clientX;
-  //         this.start_y = e.clientY;
-  //         if (this.freeShape.free_draw) {
-  //           this.freeShape.free_draw.lastCommittedPoint = [e.clientX, e.clientY];
-  //           console.log(this.freeShape.free_draw.lastCommittedPoint)
-  //         }
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         break;
-  //       case 'RECTANGLE':
-  //         this.infCanvas.style.cursor = 'default';
-  //         this.drawRectangle(this.start_x, this.start_y, this.rectShape);
-  //         // this.drawingService.drawRectangle(this.start_x, this.start_y, this.rectShape);
-  //         this.shapes.push(this.rectShape);
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         window.location.reload();
-  //         break;
-  //       case 'ELLIPSE':
-  //         this.infCanvas.style.cursor = 'default';
-  //         this.drawEllipse(this.start_x, this.start_y, this.ellipseShape);
-  //         // this.drawingService.drawEllipse(this.start_x, this.start_y, this.ellipseShape);
-  //         this.shapes.push(this.ellipseShape);
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         window.location.reload();
-  //         break;
-  //       case 'LINE':
-  //         this.infCanvas.style.cursor = 'default';
-  //         this.drawLine(this.start_x, this.start_y, this.lineShape);
-  //         // this.drawingService.drawLine(this.start_x, this.start_y, this.lineShape);
-  //         this.shapes.push(this.lineShape);
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         window.location.reload();
-  //         break;
-  //       case 'ARROW':
-  //         this.infCanvas.style.cursor = 'default';
-  //         this.drawArrow(this.start_x, this.start_y, this.arrowShape);
-  //         // this.drawingService.drawArrow(this.start_x, this.start_y, this.arrowShape);
-  //         this.shapes.push(this.arrowShape);
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         window.location.reload();
-  //         break;
-  //       case 'SELECT_TOOL':
-  //         if(this.selected_shape){
-  //           this.infCanvas.style.cursor = 'grab';
-  //           this.selected_shape.isDragging = false;
-  //           this.selected_shape.isSelected = false;
-  //         }
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         break;
-  //       case 'PAN':
-  //         this.infCanvas.style.cursor = 'grab';
-  //         localStorage.setItem('shapes', JSON.stringify(this.shapes));
-  //         break;
-  //     }
-  //   }
-  // }
+  }
   mouseInsideShape(x: number, y: number, shape: CoCanvasShape): boolean {
     switch (shape.type_enum) {
       case 'RECTANGLE':
@@ -857,7 +604,7 @@ export class CanvasComponent implements OnInit {
   }
   drawAllShapes(shapes: CoCanvasShape[]): void {
     if (this.ctx) {
-      // this.ctx.clearRect(0, 0, Infinity, Infinity);
+      this.ctx.clearRect(0, 0, Infinity, Infinity);
       for (let shape of shapes) {
         switch (shape.type_enum) {
           case 'FREE_DRAW':
@@ -988,11 +735,11 @@ export class CanvasComponent implements OnInit {
       var headlen = 10;
       var angle = Math.atan2(toy-fromy,tox-fromx);
       this.ctx.strokeStyle = shape.stroke_color;
+      this.ctx.lineWidth = shape.line_width;
       this.ctx.save();
       this.ctx.beginPath();
       this.ctx.moveTo(fromx, fromy);
       this.ctx.lineTo(tox, toy);
-      this.ctx.lineWidth = this.canvas_state.currentStrokeWidth;
       this.ctx.stroke();
       this.ctx.beginPath();
       this.ctx.moveTo(tox, toy);
@@ -1018,47 +765,6 @@ export class CanvasComponent implements OnInit {
       }
     }
   }
-  // drawFreeDraw(x: number, y: number, shape: CoCanvasShape): void {
-  //   if (this.ctx) {
-  //       const points = shape.free_draw?.points ?? [];
-  //       const numPoints = points.length;
-  //       const startingPoint = shape.free_draw?.startingPoint ?? [0, 0];
-  //       // Start drawing immediately when there are no points
-  //       if (numPoints === 0) {
-  //           this.ctx.beginPath();
-  //           this.ctx.moveTo(startingPoint[0], startingPoint[1]);
-  //           points.push([startingPoint[0], startingPoint[1]]);
-  //           this.ctx.stroke();
-  //       } else if (numPoints === 1) {
-  //           // Draw a line to the current point
-  //           const lastPoint = points[numPoints - 1];
-  //           this.ctx.beginPath();
-  //           this.ctx.moveTo(lastPoint[0], lastPoint[1]);
-  //           this.ctx.lineTo(x, y);
-  //           this.ctx.strokeStyle = shape.stroke_color;
-  //           this.ctx.lineWidth = shape.line_width;
-  //           this.ctx.lineJoin = 'round';
-  //           this.ctx.lineCap = 'round';
-  //           this.ctx.stroke();
-  //           points.push([x, y]);
-  //       } else {
-  //           // Implement spline interpolation
-  //           const controlPoints = this.getControlPoints(points);
-  //           this.ctx.beginPath();
-  //           this.ctx.moveTo(points[numPoints - 1][0], points[numPoints - 1][1]);
-
-  //           for (let i = 1; i < controlPoints.length; i++) {
-  //               this.ctx.quadraticCurveTo(points[i][0], points[i][1], controlPoints[i][0], controlPoints[i][1]);
-  //           }
-  //           this.ctx.strokeStyle = shape.stroke_color;
-  //           this.ctx.lineWidth = shape.line_width;
-  //           this.ctx.lineJoin = 'round';
-  //           this.ctx.lineCap = 'round';
-  //           this.ctx.stroke();
-  //           points.push([x, y]);
-  //       }
-  //   }
-  // }
   getControlPoints(points: [x: number, y: number][]): [x: number, y: number][] {
     const controlPoints: [x: number, y: number][] = [];
     for (let i = 1; i < points.length - 1; i++) {
@@ -1078,5 +784,4 @@ export class CanvasComponent implements OnInit {
     }
     return controlPoints;
   }
-
 }

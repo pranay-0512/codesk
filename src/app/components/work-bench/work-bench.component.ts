@@ -27,6 +27,7 @@ export class WorkBenchComponent implements OnInit {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, Infinity, Infinity);
       localStorage.removeItem('shapes');
+      localStorage.removeItem('canvas_state');
     }
     window.location.reload();
   }
