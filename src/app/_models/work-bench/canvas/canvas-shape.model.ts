@@ -7,8 +7,8 @@ export class CoCanvasShape{
     rectangle?: {
         start_x: number;
         start_y: number;
-        end_x: number;
-        end_y: number;
+        width: number;
+        height: number;
         roundness: number;
     }
     ellipse?: {
@@ -30,6 +30,8 @@ export class CoCanvasShape{
         start_y: number;
         end_x: number;
         end_y: number;
+        lineCap: 'round' | 'butt' | 'square';
+        lineJoin: 'round' | 'bevel' | 'miter';
     }
     text?: {
         start_x: number;
@@ -46,18 +48,10 @@ export class CoCanvasShape{
         mouse_x: number;
         mouse_y: number;
     }
-    // start_x!: number; // x coordinate of the starting point // center point for ellipse;
-    // start_y!: number; // y coordinate of the starting point // center point for ellipse;
-    // width?: number; // width of the rectangle
-    // height?: number; // height of the rectangle
-    // radius?: number; // radius of the ellipse
-    // angle?: number; // angle of the line // clock wise angle
-    // length?: number; // length of the line
     line_width!: number;
     stroke_color!: string;
     background_color?: string;
     type_enum!: 'RECTANGLE' | 'ELLIPSE' | 'LINE' | 'ARROW' | 'FREE_DRAW' | 'TEXT' | 'ERASER';
-    shape_manager!: ShapeManager;
 }
 
 export class ShapeManager {

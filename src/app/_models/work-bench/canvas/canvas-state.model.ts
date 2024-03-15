@@ -24,7 +24,15 @@ export class CoCanvasState {
     selectedElementIds!: SelectedElementIds
     viewBackgroundColor!: string
     font_family!: string;
-    zoom!: Zoom
+    zoom!: Zoom;
+    shadow?: Shadow
+}
+
+export class Shadow {
+    blur!: number
+    offsetX!: number
+    offsetY!: number
+    color!: string
 }
 export class ActiveTool {
     type!: string
