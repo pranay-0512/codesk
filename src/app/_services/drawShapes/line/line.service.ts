@@ -102,6 +102,6 @@ export class LineService {
     this.fabricCanvas.selection = false;
     this.fabricCanvas.defaultCursor = 'crosshair';
     this.fabricCanvas.hoverCursor = 'crosshair';
-    localStorage.setItem('shapes', JSON.stringify(this.fabricCanvas));
+    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
   }
 }

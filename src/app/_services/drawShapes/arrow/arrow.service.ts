@@ -9,7 +9,6 @@ import { v4 as uuidv4 } from 'uuid';
 })
 export class ArrowService {
   private fabricCanvas: fabric.Canvas;
-  private shapes: CoCanvasShape[] = [];
   private mouseDown: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
@@ -107,6 +106,6 @@ export class ArrowService {
   }
   stopDrawingArrow(event: any) {
     this.mouseDown = false;
-    localStorage.setItem('shapes', JSON.stringify(this.fabricCanvas));
+    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
   }
 }

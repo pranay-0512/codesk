@@ -101,6 +101,6 @@ export class EllipseService {
   stopDrawingEllipse() {
     this.mouseDown = false;
     console.log(this.fabricCanvas.selection);
-    localStorage.setItem('shapes', JSON.stringify(this.fabricCanvas));
+    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
   }
 }
