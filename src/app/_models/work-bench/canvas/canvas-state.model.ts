@@ -24,6 +24,7 @@ export class CoCanvasState {
     selectedElementIds!: SelectedElementIds
     viewBackgroundColor!: string
     font_family!: string;
+    fonts?: Array<string>;
     zoom!: Zoom;
     shadow?: Shadow
 }

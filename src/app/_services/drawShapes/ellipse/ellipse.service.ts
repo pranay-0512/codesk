@@ -68,6 +68,9 @@ export class EllipseService {
   }
   startDrawingEllipse(event: any) {
     if(event.e.buttons === 1){
+      this.fabricCanvas.selection = false;
+      this.fabricCanvas.defaultCursor = 'crosshair';
+      this.fabricCanvas.hoverCursor = 'crosshair';
       let pointer = this.fabricCanvas.getPointer(event.e);
       this.mouseDown = true;
       let ellipse = new fabric.Ellipse({
@@ -79,28 +82,31 @@ export class EllipseService {
         stroke: this.canvas_state.currentStrokeColor,
         strokeWidth: this.canvas_state.currentStrokeWidth,
         opacity: this.canvas_state.currentOpacity,
-        selectable: false,
+        selectable: true,
         shadow: new fabric.Shadow(this.canvas_state.shadow)
       });
       ellipse.type = 'ellipse';
       this.fabricCanvas.add(ellipse);
       this.fabricCanvas.requestRenderAll();
-      console.log(this.fabricCanvas.selection);
     }
   }
   keepDrawingEllipse(event: any) {
     if(this.mouseDown) {
+      this.fabricCanvas.selection = false;
+      this.fabricCanvas.defaultCursor = 'crosshair';
+      this.fabricCanvas.hoverCursor = 'crosshair';
       let pointer = this.fabricCanvas.getPointer(event.e);
       let ellipse = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Ellipse;
       ellipse?.set({rx: Math.abs(pointer.x - (ellipse.left ?? 0)) / 2});
       ellipse?.set({ry: Math.abs(pointer.y - (ellipse.top ?? 0)) / 2});
       this.fabricCanvas.renderAll();
-      console.log(this.fabricCanvas.selection);
     }
   }
   stopDrawingEllipse() {
     this.mouseDown = false;
-    console.log(this.fabricCanvas.selection);
+    this.fabricCanvas.selection = false;
+    this.fabricCanvas.defaultCursor = 'crosshair';
+    this.fabricCanvas.hoverCursor = 'crosshair';
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
   }
 }

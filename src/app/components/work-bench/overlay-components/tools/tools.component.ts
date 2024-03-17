@@ -1,5 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
+import { ToolSelectedEvent } from '../../work-bench.component';
 
 @Component({
   selector: 'app-tools',
@@ -7,7 +8,7 @@ import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-to
   styleUrls: ['./tools.component.scss']
 })
 export class ToolsComponent implements OnInit {
-  @Output() selectedTool = new EventEmitter<CoCanvasTool>();
+  @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public tools: Array<CoCanvasTool> = tools;
   constructor() { }
   ngOnInit(): void {
@@ -17,6 +18,7 @@ export class ToolsComponent implements OnInit {
     this.tools.forEach((t) => {
       t.is_active = t.enum === tool.enum ? true : false;
     });
-    this.selectedTool.emit(tool);
+    this.toolSelected.emit({ selectedTool: tool })
+    console.log("tool selected: ", tool);
   }
 }

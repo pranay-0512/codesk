@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { InfiniteCanvasRenderingContext2D } from 'ef-infinite-canvas';
-import { CoCanvasTool } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
+import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
 
 @Component({
   selector: 'app-work-bench',
@@ -9,14 +9,15 @@ import { CoCanvasTool } from 'src/app/_models/work-bench/canvas/canvas-tool.mode
 })
 export class WorkBenchComponent implements OnInit {
   constructor() { }
-  public selectedTool!: CoCanvasTool;
+  public selectedTool: CoCanvasTool = tools[0];
   public infCanvas!: HTMLCanvasElement;
   public ctx!: InfiniteCanvasRenderingContext2D;
   ngOnInit(): void {
     console.log("work bench component loaded");
   }
-  onToolSelected(event: Event): void {
-    this.selectedTool = event as unknown as CoCanvasTool;
+  onToolSelected(event: ToolSelectedEvent): void {
+    console.log("onToolSelected called")
+    this.selectedTool = event.selectedTool;
   }
   clearCanvas(): void {
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
@@ -31,4 +32,7 @@ export class WorkBenchComponent implements OnInit {
     }
     window.location.reload();
   }
+}
+export interface ToolSelectedEvent {
+  selectedTool: CoCanvasTool; // Assuming CoCanvasTool is your tool type
 }

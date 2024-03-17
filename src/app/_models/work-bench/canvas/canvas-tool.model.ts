@@ -8,7 +8,7 @@ export class CoCanvasTool {
 export const tools: Array<CoCanvasTool> = [
     { 
       name: 'Select tool',
-      enum: 'SELECT_TOOL',
+      enum: 'SELECT',
       icon: 'crop_free',
       is_active: false
     },

@@ -79,7 +79,7 @@ export class LineService {
         opacity: this.canvas_state.currentOpacity,
         strokeLineCap: 'round',
         strokeLineJoin: 'round',
-        selectable: false,
+        selectable: true,
         shadow: new fabric.Shadow(this.canvas_state.shadow)
       });
       this.fabricCanvas.add(line);

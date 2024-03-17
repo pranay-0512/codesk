@@ -90,17 +90,18 @@ export class RectangleService {
         data: this.uuid,
         shadow: new fabric.Shadow(this.canvas_state.shadow)
       });
+      rect.type = 'rect';
       this.fabricCanvas.add(rect);
       this.fabricCanvas.requestRenderAll();
     }
   }
   keepDrawingRectangle(event: any) {
     if(this.mouseDown) {
-      this.fabricCanvas.selection = false;
+      // this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
       this.fabricCanvas.hoverCursor = 'crosshair';
       let pointer = this.fabricCanvas.getPointer(event.e);
-      let rectangle = this.fabricCanvas.getObjects().find(o => o.data === this.uuid) as fabric.Rect;
+      let rectangle = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Rect;
       if(rectangle) {
         rectangle.set({
           width: Math.abs(pointer.x - (rectangle.left ?? 0)),
@@ -110,9 +111,9 @@ export class RectangleService {
       this.fabricCanvas.renderAll();
     }
   }
-  stopDrawingRectangle(event: any) {
+  stopDrawingRectangle() {
     this.mouseDown = false;
-    this.fabricCanvas.selection = false;
+    // this.fabricCanvas.selection = false;
     this.fabricCanvas.defaultCursor = 'crosshair';
     this.fabricCanvas.hoverCursor = 'crosshair';
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));

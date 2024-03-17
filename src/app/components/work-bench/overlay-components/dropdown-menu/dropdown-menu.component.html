@@ -1,5 +1,10 @@
 <div class="overlay">
-    <div class="container" *ngFor="let item of WorkBenchMenuItems; let i = index">
-        {{item.title}}
+    <div class="p1 menu-icon" (click)="showMenu()">
+        <mat-icon>menu</mat-icon>
     </div>
+    <ng-container *ngIf="isShowMenu">
+        <div class="container p-1 m-lg-2 menu-list" *ngFor="let item of WorkBenchMenuItems; let i = index">
+            {{item.title}}
+        </div>
+    </ng-container>
 </div>
