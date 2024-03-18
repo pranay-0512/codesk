@@ -71,6 +71,9 @@ export class LineService {
       this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
       this.fabricCanvas.hoverCursor = 'crosshair';
+      if(this.fabricCanvas.getObjects()){
+        this.fabricCanvas.discardActiveObject().renderAll();
+      }
       let pointer = this.fabricCanvas.getPointer(event.e);
       this.mouseDown = true;
       let line = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
@@ -87,10 +90,14 @@ export class LineService {
     }
   }
   keepDrawingLine(event: any): void {
+    this.fabricCanvas.setCursor('crosshair');
     if(this.mouseDown) {
       this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
       this.fabricCanvas.hoverCursor = 'crosshair';
+      if(this.fabricCanvas.getObjects()){
+        this.fabricCanvas.discardActiveObject().renderAll();
+      }
       let pointer = this.fabricCanvas.getPointer(event.e);
       let line = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Line;
       line.set({ x2: pointer.x, y2: pointer.y });
@@ -98,10 +105,10 @@ export class LineService {
     }
   }
   stopDrawingLine(): void {
-    this.mouseDown = false;
-    this.fabricCanvas.selection = false;
-    this.fabricCanvas.defaultCursor = 'crosshair';
-    this.fabricCanvas.hoverCursor = 'crosshair';
+    this.fabricCanvas.selection = true;
+    this.fabricCanvas.setActiveObject(this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1]);
+    this.fabricCanvas.renderAll();
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+    this.mouseDown = false;
   }
 }

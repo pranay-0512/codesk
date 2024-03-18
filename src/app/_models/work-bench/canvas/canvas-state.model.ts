@@ -1,7 +1,7 @@
 // the CoCanvasState will change when the state of the canvas changes.
 export class CoCanvasState {
     showWelcomeScreen!: boolean
-    theme!: string
+    theme: string = 'light' || 'dark'
     currentFillStyle!: string
     currentFontFamily!: number
     currentFontSize!: number
