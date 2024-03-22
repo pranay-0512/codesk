@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { fabric } from 'fabric';
-import { CoCanvasShape } from 'src/app/_models/work-bench/canvas/canvas-shape.model';
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { v4 as uuidv4 } from 'uuid';
 @Injectable({
@@ -50,9 +49,12 @@ export class EllipseService {
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
-      value: 1
+      value: 1,
+      offsetX: 0,
+      offsetY: 0
     }
   };
+  public uuid!: string;
   constructor() { 
     this.fabricCanvas = new fabric.Canvas('co_canvas', {
       width: screen.width,
@@ -68,22 +70,33 @@ export class EllipseService {
   }
   startDrawingEllipse(event: any) {
     if(event.e.buttons === 1){
+      this.fabricCanvas.forEachObject((obj) => {
+        obj.lockMovementX = true;
+        obj.lockMovementY = true;
+      });
+      this.fabricCanvas.renderAll();
       this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
-      this.fabricCanvas.hoverCursor = 'crosshair';
       let pointer = this.fabricCanvas.getPointer(event.e);
       this.mouseDown = true;
+      this.uuid = uuidv4();
+      if(this.fabricCanvas.getObjects()){
+        this.fabricCanvas.discardActiveObject().renderAll();
+      }
       let ellipse = new fabric.Ellipse({
-        rx: 0,
-        ry: 0,
         left: pointer.x,
         top: pointer.y,
+        rx: 0,
+        ry: 0,
         fill: this.canvas_state.currentFillStyle,
         stroke: this.canvas_state.currentStrokeColor,
         strokeWidth: this.canvas_state.currentStrokeWidth,
-        opacity: this.canvas_state.currentOpacity,
         selectable: true,
-        shadow: new fabric.Shadow(this.canvas_state.shadow)
+        opacity: this.canvas_state.currentOpacity,
+        data: this.uuid,
+        shadow: new fabric.Shadow(this.canvas_state.shadow),
+        lockMovementX: true,
+        lockMovementY: true,
       });
       ellipse.type = 'ellipse';
       this.fabricCanvas.add(ellipse);
@@ -91,22 +104,27 @@ export class EllipseService {
     }
   }
   keepDrawingEllipse(event: any) {
+    this.fabricCanvas.setCursor('crosshair');
     if(this.mouseDown) {
-      this.fabricCanvas.selection = false;
-      this.fabricCanvas.defaultCursor = 'crosshair';
-      this.fabricCanvas.hoverCursor = 'crosshair';
       let pointer = this.fabricCanvas.getPointer(event.e);
+      if(this.fabricCanvas.getObjects()){
+        this.fabricCanvas.discardActiveObject().renderAll();
+      }
       let ellipse = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Ellipse;
-      ellipse?.set({rx: Math.abs(pointer.x - (ellipse.left ?? 0)) / 2});
-      ellipse?.set({ry: Math.abs(pointer.y - (ellipse.top ?? 0)) / 2});
+      if(ellipse){
+        ellipse.set({
+          ry: Math.abs(pointer.y - (ellipse.top ?? 0)) / 2,
+          rx: Math.abs(pointer.x - (ellipse.left ?? 0)) / 2
+        });
+      }
       this.fabricCanvas.renderAll();
     }
   }
-  stopDrawingEllipse() {
-    this.mouseDown = false;
-    this.fabricCanvas.selection = false;
-    this.fabricCanvas.defaultCursor = 'crosshair';
-    this.fabricCanvas.hoverCursor = 'crosshair';
+  stopDrawingEllipse(): void {
+    this.fabricCanvas.selection = true;
+    this.fabricCanvas.setActiveObject(this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1]);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+    this.mouseDown = false;
+    this.fabricCanvas.renderAll();
   }
 }

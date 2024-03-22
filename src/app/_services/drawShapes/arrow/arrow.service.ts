@@ -51,7 +51,9 @@ export class ArrowService {
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
-      value: 1
+      value: 1,
+      offsetX: 0,
+      offsetY: 0
     }
   };
   constructor() { 

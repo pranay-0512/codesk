@@ -1,7 +1,9 @@
+import { offset } from "@popperjs/core"
+
 // the CoCanvasState will change when the state of the canvas changes.
 export class CoCanvasState {
     showWelcomeScreen!: boolean
-    theme!: string
+    theme: string = 'light' || 'dark'
     currentFillStyle!: string
     currentFontFamily!: number
     currentFontSize!: number
@@ -54,4 +56,6 @@ export class SelectedElementIds {
 
 export class Zoom {
     value!: number
+    offsetX!: number
+    offsetY!: number
 }

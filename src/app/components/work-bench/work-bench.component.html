@@ -1,16 +1,29 @@
 <app-tools (toolSelected)="onToolSelected($event)"></app-tools>
-<app-canvas [selectedTool]="selectedTool"></app-canvas>
+<app-canvas [selectedTool]="selectedTool" (toolSelected)="onToolSelected($event)" [shapeProperties]="shapeProperties"></app-canvas>
 <app-dropdown-menu></app-dropdown-menu>
 <app-utility></app-utility>
-<app-pallete></app-pallete>
+<app-pallete [selectedTool]="selectedTool" (propertyChange)="updateShapeProperty($event)"></app-pallete>
 <app-button 
     topPos="10px" 
     rightPos="120px" 
-    width="70px" 
+    width="90px" 
     textColor="white" 
     bgColor="rgba(0, 0, 0, 0.9)" 
     height="40px" 
-    buttonText="Share" 
+    buttonText="Download"
+    (clickHandler)="downloadCanvas()"
+    borderRadius="20px"
+    border="1px solid black">
+</app-button>
+<app-button 
+    topPos="10px" 
+    rightPos="230px" 
+    width="70px" 
+    textColor="white" 
+    bgColor="rgba(34, 65, 96, 0.9)" 
+    height="40px" 
+    buttonText="Upload"
+    (clickHandler)="uploadCanvas()"
     borderRadius="20px"
     border="1px solid black">
 </app-button>
