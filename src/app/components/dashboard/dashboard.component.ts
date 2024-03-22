@@ -13,7 +13,6 @@ export class DashboardComponent implements OnInit {
   constructor(public modalService: NgbModal, private router: Router) { }
 
   ngOnInit(): void {
-    console.log("Dashboard Component Loaded!")
   }
   createNewBoard(): void {
     const modalRef = this.modalService.open(CreateWorkBenchComponent, { size: 'lg', backdrop: 'static', keyboard: true } );

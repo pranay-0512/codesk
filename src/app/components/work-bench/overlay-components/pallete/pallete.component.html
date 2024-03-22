@@ -1,14 +1,38 @@
-<!-- <div *ngIf="selected_shape">
-  <div>
-    Roundness:
-    <input type="range" min="0" max="100" [(ngModel)]="selected_shape.roundness" (change)="updateShape()" />
+<div class="overlay" *ngIf="isToolSelected">
+  <div class="color-palette">
+    <div>
+      <label for="fillColor">background color</label>
+      <input type="color" [(ngModel)]="backgroundColor" (ngModelChange)="emitChangeEvent()">
+    </div>
+    <div>
+      <label for="strokeWidth">stroke width</label>
+      <input type="range" min="0" max="5" step="0.01" [(ngModel)]="strokeWidth" (ngModelChange)="emitChangeEvent()">
+    </div>
+    <div>
+      <label for="strokeColor">stroke color</label>
+      <input type="color" [(ngModel)]="strokeColor" (ngModelChange)="emitChangeEvent()">
+    </div>
+    <div>
+      <label for="strokeStyle">stroke style</label>
+      <select [(ngModel)]="strokeStyle" (ngModelChange)="emitChangeEvent()">
+        <option value="solid">Solid</option>
+        <option value="dashed">Dashed</option>
+        <option value="dotted">Dotted</option>
+      </select>
+    </div>
+    <div>
+      <label for="opacity">opacity</label>
+      <input type="range" min="0" max="1" step="0.05" [(ngModel)]="opacity" (ngModelChange)="emitChangeEvent()">
+    </div>
+    <div class="shadow-options">
+      <label>Blur:</label>
+      <input type="range" min="0" max="5" step="0.05" [(ngModel)]="blur" (ngModelChange)="emitChangeEvent()">
+      <label>Offset X:</label>
+      <input type="range" min="0" max="5" step="0.05" [(ngModel)]="offsetX" (ngModelChange)="emitChangeEvent()">
+      <label>Offset Y:</label>
+      <input type="range" min="0" max="5" step="0.05" [(ngModel)]="offsetY" (ngModelChange)="emitChangeEvent()">
+      <label>Color:</label>
+      <input type="color" [(ngModel)]="shadowColor" (ngModelChange)="emitChangeEvent()">
+    </div>
   </div>
-  <div>
-    Stroke Width:
-    <input type="range" min="0" max="100" [(ngModel)]="selected_shape.stroke_width" (change)="updateShape()" />
-  </div>
-  <div>
-    Color:
-    <input type="color" [(ngModel)]="selected_shape.color" (change)="updateShape()" />
-  </div>
-</div> -->
+</div>

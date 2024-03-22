@@ -3,6 +3,7 @@ import { fabric } from 'fabric';
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
 import { v4 as uuidv4 } from 'uuid';
+import { WebsocketShapeService } from '../../websocket/websocket-shape.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -50,11 +51,13 @@ export class RectangleService {
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
-      value: 1
+      value: 1,
+      offsetX: 0,
+      offsetY: 0
     }
   };
   public uuid!: string;
-  constructor() { 
+  constructor(private shapeService: WebsocketShapeService) { 
     this.fabricCanvas = new fabric.Canvas('co_canvas', {
       width: screen.width,
       height: screen.height,
@@ -69,6 +72,11 @@ export class RectangleService {
   }
   startDrawingRectangle(event: any) {
     if(event.e.buttons === 1){
+      this.fabricCanvas.forEachObject((obj) => {
+        obj.lockMovementX = true;
+        obj.lockMovementY = true;
+      });
+      this.fabricCanvas.renderAll();
       this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
       this.fabricCanvas.hoverCursor = 'crosshair';
@@ -91,10 +99,13 @@ export class RectangleService {
         data: this.uuid,
         shadow: new fabric.Shadow(this.canvas_state.shadow),
         rx: this.canvas_state.currentRoundness,
-        ry: this.canvas_state.currentRoundness
+        ry: this.canvas_state.currentRoundness,
+        lockMovementX: true,
+        lockMovementY: true,
       });
       rect.type = 'rect';
       this.fabricCanvas.add(rect);
+      // this.shapeService.sendMessage(this.fabricCanvas);
       this.fabricCanvas.requestRenderAll();
     }
   }
@@ -112,16 +123,15 @@ export class RectangleService {
           height: Math.abs(pointer.y - (rectangle.top ?? 0))
         });
       }
+      // this.shapeService.sendMessage(this.fabricCanvas);
       this.fabricCanvas.renderAll();
     }
   }
   stopDrawingRectangle(): void {
     this.fabricCanvas.selection = true;
     this.fabricCanvas.setActiveObject(this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1]);
-    console.log(this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1]);
-    this.fabricCanvas.renderAll();
-    console.log("object")
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
+    this.fabricCanvas.renderAll();
   }
 }

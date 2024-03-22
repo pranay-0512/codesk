@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CoCanvasShape } from 'src/app/_models/work-bench/canvas/canvas-shape.model';
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
@@ -11,6 +11,7 @@ import { ArrowService } from 'src/app/_services/drawShapes/arrow/arrow.service';
 import { FreeDrawService } from 'src/app/_services/drawShapes/free-draw/free-draw.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as FontFaceObserver from 'fontfaceobserver';
+import { ToolSelectedEvent } from '../work-bench.component';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -19,21 +20,32 @@ import * as FontFaceObserver from 'fontfaceobserver';
 export class CanvasComponent implements OnInit, OnChanges {
   @Input() clearCanvasMessage!: any;
   @Input() selectedTool: CoCanvasTool = tools[0];
+  @Input() shapeProperties: any = {
+    backgroundColor: '#ffffff',
+    strokeWidth: 1,
+    strokeColor: '#000000',
+    strokeStyle: 'solid',
+    opacity: 1,
+    blur: 0,
+    offsetX: 0,
+    offsetY: 0,
+    shadowColor: '#000000'
+  };
+  @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public fabricCanvas!: fabric.Canvas;
   public mouseDown: boolean = false;
   public isPanning: boolean = false;
   public clipboard: any = null;
   public isSelected: boolean = false;
-  public canvasSize: any = {
-    width: 0,
-    height: 0
-  }
+  public secondaryCursor: any;
+  public subscriptionArray: any[] = [];
+  public isTyping: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'dark', 
     currentFillStyle: 'rgba(45, 45, 45, 0.05)',
     currentFontFamily: 0,
-    currentFontSize: 32,
+    currentFontSize: 48,
     currentOpacity: 1,
     currentRoughness: 1,
     currentStrokeColor: 'black',
@@ -44,7 +56,7 @@ export class CanvasComponent implements OnInit, OnChanges {
     editingGroupId: null,
     activeTool: {
       type: 'SELECT',
-      lastActiveTool: 'SELECTION'
+      lastActiveTool: 'SELECT'
     },
     exportBackground: false,
     gridSize: 100,
@@ -68,9 +80,11 @@ export class CanvasComponent implements OnInit, OnChanges {
     },
     font_family: 'comic sans ms',
     fonts: ['Sevillana', 'Combo', 'Gaegu'],
-    viewBackgroundColor: 'rgba(0,0,0,0.9)',
+    viewBackgroundColor: 'black',
     zoom: {
-      value: 1
+      value: 1,
+      offsetX: 0,
+      offsetY: 0
     }
   };
   public theme: string = this.canvas_state.theme === 'light' ? 'rgb(255,255,0)' : 'rgba(0,0,0,1)';
@@ -97,15 +111,22 @@ export class CanvasComponent implements OnInit, OnChanges {
       defaultCursor: 'default',
       hoverCursor: 'default'
     });
+    this.secondaryCursor = new fabric.Text('+', {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 'red',
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false,
+    });
     this.setCanvas();
     this.getFromLocalStorage();
-    this.canvas_state = localStorage.getItem('cocanvas_state') ? JSON.parse(localStorage.getItem('cocanvas_state') ?? '{}') : this.canvas_state;
     this.addCustomFonts();
     this.addMouseEvents(this.selectedTool);
     this.customSelectionBorder(); 
     this.addZoomEvent();
-    this.addPanEvent();
-    this.addNumberEvent()
+    this.addKeyEvents()
   }
   getFromLocalStorage(): void {
     const shapes = JSON.parse(localStorage.getItem('cocanvas_shapes') ?? '[]');
@@ -166,30 +187,34 @@ export class CanvasComponent implements OnInit, OnChanges {
     const canvas = this.fabricCanvas;
     canvas.on('mouse:wheel', (opt) => {
       var delta = opt.e.deltaY;
+      if(delta>0) this.fabricCanvas.setCursor('zoom-out');
+      else if (delta<0) this.fabricCanvas.setCursor('zoom-in');
       var zoom = canvas.getZoom();
-      zoom *= 0.999 ** delta;
+      zoom *= 0.999 ** delta; 
       if (zoom > 10) {zoom = 10}
-      if (zoom < 0.01) {zoom = 0.01};
+      if (zoom < 0.05) {zoom = 0.05};
       this.canvas_state.zoom.value = zoom;
       canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
       opt.e.preventDefault();
       opt.e.stopPropagation();
-      localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state)); 
+      localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
     });
   }
   setCanvas(): void {
-    console.log(this.theme)
-    console.log("setCanvas called")
-    this.fabricCanvas.setZoom(this.canvas_state.zoom.value);
-    this.fabricCanvas.setBackgroundColor('red', () => {
-      this.fabricCanvas.renderAll();
-    });
+    this.canvas_state = localStorage.getItem('cocanvas_state') ? JSON.parse(localStorage.getItem('cocanvas_state') ?? '{}') : this.canvas_state;
+    const zoom = this.canvas_state.zoom.value;
+    const relScrollX = this.canvas_state.relativeScrollX;
+    const relScrollY = this.canvas_state.relativeScrollY;
+    this.fabricCanvas.setZoom(zoom);
+    this.fabricCanvas.relativePan(new fabric.Point(relScrollX, relScrollY));
+    this.selectedTool = tools.find((tool) => tool.enum === this.canvas_state.activeTool.type) ?? tools[0];
   }
   addMouseEvents(tool: CoCanvasTool): void {
     switch(tool.enum) {
       case 'TEXT':
         this.fabricCanvas.selection = false;
         this.fabricCanvas.on('mouse:down', (e: any) => {
+          this.isTyping = true;
           const pointer = this.fabricCanvas.getPointer(e.e);
           const text = new fabric.IText('', {
             left: pointer.x,
@@ -207,17 +232,27 @@ export class CanvasComponent implements OnInit, OnChanges {
           this.fabricCanvas.add(text);
           this.fabricCanvas.setActiveObject(text);
           text.enterEditing();
-          text.hiddenTextarea?.focus();
-          text.hiddenTextarea?.select();
-          text.hiddenTextarea?.addEventListener('input', (e) => {
-            text.set({ text: text.hiddenTextarea?.value });
-            this.fabricCanvas.renderAll();
-          });
+          text.on('editing:entered', (e) => {
+            this.isTyping = true;
+            text.hiddenTextarea?.focus();
+            text.hiddenTextarea?.select();
+            text.hiddenTextarea?.addEventListener('input', (e) => {
+              text.set({ text: text.hiddenTextarea?.value });
+              this.fabricCanvas.renderAll();
+            });
+          })
           text.on('editing:exited', (e) => {
-            this.selectedTool = tools[0];
-            this.addMouseEvents(this.selectedTool);
+            this.isTyping = false;
             text.hiddenTextarea?.blur();
             this.fabricCanvas.renderAll();
+            const selectTool = () => {
+              this.selectedTool = tools[0];
+              this.removeMouseEvents();
+              this.addMouseEvents(this.selectedTool);
+              this.canvas_state.activeTool.type = this.selectedTool.enum;
+              localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
+            };
+            selectTool();
           });
           localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
         });
@@ -242,6 +277,8 @@ export class CanvasComponent implements OnInit, OnChanges {
             if (this.fabricCanvas.getActiveObject()) {
               this.fabricCanvas.discardActiveObject().renderAll();
             }
+            this.canvas_state.relativeScrollX += e.e.movementX;
+            this.canvas_state.relativeScrollY += e.e.movementY;
             this.fabricCanvas.relativePan(new fabric.Point(e.e.movementX, e.e.movementY));
           }
           else {
@@ -253,6 +290,8 @@ export class CanvasComponent implements OnInit, OnChanges {
           this.mouseDown = false;
           this.isPanning = false;
           this.fabricCanvas.selection = false;
+          this.fabricCanvas.renderAll();
+          localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
         });
         break;
       case 'SELECT':
@@ -262,6 +301,9 @@ export class CanvasComponent implements OnInit, OnChanges {
           if (e.target) {
             this.fabricCanvas.setCursor('move');
           }
+          if(e.e.buttons === 1) {
+            // this.shapeService.sendMessage(e.pointer);
+          }
         });
         this.fabricCanvas.on('mouse:move', (e)=> {
           this.fabricCanvas.defaultCursor = 'default';
@@ -269,45 +311,11 @@ export class CanvasComponent implements OnInit, OnChanges {
           if(e.target) {
             this.fabricCanvas.hoverCursor = 'move';
           }
+          // this.shapeService.sendMessage(e.pointer);
         })
         this.fabricCanvas.on('object:modified', (e: any) => {
+          // this.shapeService.sendMessage(this.fabricCanvas);
           localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
-        });
-        window.addEventListener('keydown', (e) => {
-          if (e.key === 'Delete') {
-            this.fabricCanvas.remove(...this.fabricCanvas.getActiveObjects());
-            this.fabricCanvas.discardActiveObject().renderAll();
-            localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
-          }
-          else if (e.ctrlKey && e.key === 'c') {
-            this.fabricCanvas.getActiveObject()?.clone((clonedObj: any) => {
-              this.clipboard = clonedObj;
-            });
-          }
-          else if(e.ctrlKey && e.key === 'v') {
-            if(!this.clipboard) return;
-            console.log(this.clipboard)
-            this.clipboard.clone((clonedObj: any) => {
-              this.fabricCanvas.discardActiveObject();
-              clonedObj.set({
-                left: clonedObj.left + 300,
-                top: clonedObj.top + 100,
-                evented: true,
-              });
-              if (clonedObj.type === 'activeSelection') {
-                clonedObj.canvas = this.fabricCanvas;
-                clonedObj.forEachObject((obj: any) => {
-                  this.fabricCanvas.add(obj);
-                });
-                clonedObj.setCoords();
-              } else {
-                this.fabricCanvas.add(clonedObj);
-              }
-              this.fabricCanvas.setActiveObject(clonedObj);
-              this.fabricCanvas.requestRenderAll();
-              localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
-            });
-          }
         });
         break;
       case 'LINE':
@@ -320,6 +328,12 @@ export class CanvasComponent implements OnInit, OnChanges {
             this.selectedTool = tools[0];
             this.removeMouseEvents();
             this.addMouseEvents(this.selectedTool);
+            this.fabricCanvas.forEachObject((obj) => {
+              obj.lockMovementX = false;
+              obj.lockMovementY = false;
+            });
+            this.canvas_state.activeTool.type = this.selectedTool.enum;
+            localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
           selectTool();
         }) 
@@ -334,6 +348,12 @@ export class CanvasComponent implements OnInit, OnChanges {
             this.selectedTool = tools[0];
             this.removeMouseEvents();
             this.addMouseEvents(this.selectedTool);
+            this.fabricCanvas.forEachObject((obj) => {
+              obj.lockMovementX = false;
+              obj.lockMovementY = false;
+            });
+            this.canvas_state.activeTool.type = this.selectedTool.enum;
+            localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
           selectTool();
         })
@@ -348,6 +368,12 @@ export class CanvasComponent implements OnInit, OnChanges {
             this.selectedTool = tools[0];
             this.removeMouseEvents();
             this.addMouseEvents(this.selectedTool);
+            this.fabricCanvas.forEachObject((obj) => {
+              obj.lockMovementX = false;
+              obj.lockMovementY = false;
+            });
+            this.canvas_state.activeTool.type = this.selectedTool.enum;
+            localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
           selectTool();
         }) 
@@ -384,44 +410,92 @@ export class CanvasComponent implements OnInit, OnChanges {
     this.fabricCanvas.off('mouse:move');
     this.fabricCanvas.off('mouse:up');
   }
-  addPanEvent(): void {
-    const canvas = this.fabricCanvas;
-    const panTool: CoCanvasTool = tools[1];
+  addKeyEvents(): void {
+    // select all
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        this.fabricCanvas.setActiveObject(new fabric.ActiveSelection(this.fabricCanvas.getObjects(), {
+          canvas: this.fabricCanvas,
+        }));
+        this.fabricCanvas.requestRenderAll();
+      }
+    });
+    // delete, copy, paste
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete') {
+        this.fabricCanvas.remove(...this.fabricCanvas.getActiveObjects());
+        this.fabricCanvas.discardActiveObject().renderAll();
+        localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+      }
+      else if (e.ctrlKey && e.key === 'c') {
+        this.fabricCanvas.getActiveObject()?.clone((clonedObj: any) => {
+          this.clipboard = clonedObj;
+        });
+      }
+      else if(e.ctrlKey && e.key === 'v') {
+        if(!this.clipboard) return;
+        this.clipboard.clone((clonedObj: any) => {
+          this.fabricCanvas.discardActiveObject();
+          clonedObj.set({
+            left: clonedObj.left + 300,
+            top: clonedObj.top + 100,
+            evented: true,
+          });
+          if (clonedObj.type === 'activeSelection') {
+            clonedObj.canvas = this.fabricCanvas;
+            clonedObj.forEachObject((obj: any) => {
+              this.fabricCanvas.add(obj);
+            });
+            clonedObj.setCoords();
+          } else {
+            this.fabricCanvas.add(clonedObj);
+          }
+          this.fabricCanvas.setActiveObject(clonedObj);
+          this.fabricCanvas.requestRenderAll();
+          localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+        });
+      }
+    });
+    // panning
     window.addEventListener('keydown', (e) => {
       if (e.key === ' ') {
-        this.fabricCanvas.setCursor('grab');
-        this.isPanning = true; 
-        this.removeMouseEvents();
-        this.addMouseEvents(panTool) 
+        if(this.isTyping) return;
+        else {
+          this.fabricCanvas.setCursor('grab');
+          this.isPanning = true; 
+          this.removeMouseEvents();
+          this.addMouseEvents(tools[1]) 
+        }
       }
     });
     window.addEventListener('keyup', (e)=> {
       if(e.key === ' ') {
-        this.isPanning = false;
-        if (canvas.getActiveObject()) {
-          canvas.discardActiveObject().renderAll();
+        if(this.isTyping) return;
+        else {
+          this.isPanning = false;
+          if (this.fabricCanvas.getActiveObject()) {
+            this.fabricCanvas.discardActiveObject().renderAll();
+          }
+          this.removeMouseEvents();
+          this.addMouseEvents(this.selectedTool);
         }
-        this.removeMouseEvents();
-        this.addMouseEvents(this.selectedTool);
       }
     })
-  }
-  addNumberEvent(): void {
+    // switch tools with numbers
     window.addEventListener('keydown', (e)=> {
       if (isNaN(parseInt(e.key))) return;
       if (parseInt(e.key) > tools.length) return;
+      this.canvas_state.activeTool.lastActiveTool = this.selectedTool.enum;
       this.selectedTool = tools[parseInt(e.key) - 1];
       this.removeMouseEvents();
       this.addMouseEvents(this.selectedTool);
+      this.toolSelected.emit({ selectedTool: this.selectedTool })
+      this.canvas_state.activeTool.type = this.selectedTool.enum;
+      localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
     })
   }
-  setSelectTool(): void {
-    this.selectedTool = tools[0];
-    this.removeMouseEvents();
-    this.addMouseEvents(this.selectedTool);
-  }
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
     if (changes['selectedTool']) {
       if(this.fabricCanvas) {
         this.selectedTool = changes['selectedTool'].currentValue;
@@ -430,8 +504,39 @@ export class CanvasComponent implements OnInit, OnChanges {
           this.fabricCanvas.discardActiveObject().renderAll();
         }
         this.addMouseEvents(this.selectedTool);
+        this.canvas_state.activeTool.type = this.selectedTool.enum;
+        localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
         this.fabricCanvas.requestRenderAll();
       }
     }
+    if(changes['shapeProperties']) {
+      this.shapeProperties = changes['shapeProperties'].currentValue;
+      if(this.fabricCanvas){
+        this.fabricCanvas.getActiveObjects().forEach((obj) => {
+          obj.set({
+            fill: this.shapeProperties.backgroundColor,
+            strokeWidth: this.shapeProperties.strokeWidth,
+            stroke: this.shapeProperties.strokeColor,
+            strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
+            opacity: this.shapeProperties.opacity,
+            shadow: new fabric.Shadow({
+              blur: this.shapeProperties.blur,
+              offsetX: this.shapeProperties.offsetX,
+              offsetY: this.shapeProperties.offsetY,
+              color: this.shapeProperties.shadowColor
+            })
+          });
+        });
+        this.fabricCanvas.renderAll();
+        localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+      }
+
+    }
+  }
+  
+  ngOnDestroy(): void {
+    this.subscriptionArray.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
   }
 }

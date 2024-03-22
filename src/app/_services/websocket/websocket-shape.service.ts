@@ -7,22 +7,22 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
   providedIn: 'root'
 })
 export class WebsocketShapeService {
-  public shapeSocket$!: WebSocketSubject<any>;
-  public count = 0;
-  constructor() {}
+  // public shapeSocket$!: WebSocketSubject<any>;
+  // public count = 0;
+  // constructor() {}
 
-  public connect(): Observable<any> {
-    const url = 'wss://ws.postman-echo.com/raw';
-    this.shapeSocket$ = new WebSocketSubject(url);
-    this.count++;
-    return this.shapeSocket$;
-  }
+  // public connect(): Observable<any> {
+  //   const url = "ws://localhost:8000/ws";
+  //   this.shapeSocket$ = new WebSocketSubject(url);
+  //   this.count++;
+  //   return this.shapeSocket$;
+  // }
 
-  public sendMessage(message: any): void {
-    this.shapeSocket$.next(message);
-  }
+  // public sendMessage(message: any): void {
+  //   this.shapeSocket$.next(message);
+  // }
 
-    public closeConnection(): void {
-        this.shapeSocket$.unsubscribe();
-    }
+  // public closeConnection(): void {
+  //     this.shapeSocket$.unsubscribe();
+  // }
 }

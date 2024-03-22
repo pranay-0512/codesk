@@ -10,6 +10,7 @@ import { UtilityComponent } from './overlay-components/utility/utility.component
 import { SharedModule } from '../shared/shared.module';
 import { MatIconModule } from '@angular/material/icon';
 import { PalleteComponent } from './overlay-components/pallete/pallete.component';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -24,6 +25,7 @@ import { PalleteComponent } from './overlay-components/pallete/pallete.component
     PalleteComponent
   ],
   imports: [
+    FormsModule,
     CommonModule,
     SharedModule,
     MatIconModule,

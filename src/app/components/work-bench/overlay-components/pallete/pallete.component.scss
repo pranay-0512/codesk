@@ -1,1 +1,37 @@
-// styling for the pallete component
+.overlay {
+    display: inline;
+    position: absolute;
+    top: calc(50vh - 10vh);
+    left: calc(0vw);
+    z-index: 1000;
+    user-select: none;
+    cursor: pointer;
+    background: pink;
+    border-radius: 10px;
+    border: 0px;
+    .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 100,
+        'GRAD' 200,
+        'opsz' 40
+      }
+      .color-palette {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      
+      .color-palette input,
+      .color-palette select {
+        margin-bottom: 5px;
+      }
+      
+      .shadow-options {
+        margin-top: 10px;
+      }
+      
+}
+
