@@ -12,6 +12,7 @@ import { FreeDrawService } from 'src/app/_services/drawShapes/free-draw/free-dra
 import { v4 as uuidv4 } from 'uuid';
 import * as FontFaceObserver from 'fontfaceobserver';
 import { ToolSelectedEvent } from '../work-bench.component';
+import { Transform } from 'fabric/fabric-impl';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -76,7 +77,7 @@ export class CanvasComponent implements OnInit, OnChanges {
       blur: 1,
       offsetX: 4,
       offsetY: 4,
-      color: 'aqua',
+      color: 'green',
     },
     font_family: 'comic sans ms',
     fonts: ['Sevillana', 'Combo', 'Gaegu'],
@@ -144,7 +145,7 @@ export class CanvasComponent implements OnInit, OnChanges {
       padding: 10,
       borderColor: '#949398FF',
       borderDashArray: [10, 10],
-      centeredScaling: true,
+      centeredScaling: false,
     });
   }
   addCustomFonts(): void {

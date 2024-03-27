@@ -1,4 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { fabric } from 'fabric';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
 
 @Component({
@@ -19,7 +21,14 @@ export class PalleteComponent implements OnInit {
   public offsetX: number = 0;
   public offsetY: number = 0;
   public shadowColor: string = '#000000';
-  constructor() { }
+  public fabricCanvas: fabric.Canvas = new fabric.Canvas('co_canvas');
+  private propertyChangeSubject = new Subject<any>();
+  constructor() { 
+    this.propertyChangeSubject.pipe(debounceTime(50000), distinctUntilChanged()).subscribe((value) => {
+      console.log("emitting value", value)
+      this.propertyChange.emit(value);
+    });
+  }
 
   ngOnInit(): void {
   }
