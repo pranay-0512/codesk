@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
-import { end } from '@popperjs/core';
 import { fabric } from 'fabric';
-import { CoCanvasShape } from 'src/app/_models/work-bench/canvas/canvas-shape.model';
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
-
+import { v4 as uuidv4 } from 'uuid';
 @Injectable({
   providedIn: 'root'
 })
@@ -56,6 +54,7 @@ export class LineService {
       offsetY: 0
     }
   };
+  public uuid!: string;
   constructor() {
     this.fabricCanvas = new fabric.Canvas('co_canvas', {
       width: window.innerWidth,
@@ -84,16 +83,21 @@ export class LineService {
       }
       let pointer = this.fabricCanvas.getPointer(event.e);
       this.mouseDown = true;
-      let line = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
-        strokeWidth: this.canvas_state.currentStrokeWidth,
+      this.uuid = uuidv4();
+      let linePath = `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y}`;
+      let line = new fabric.Path(linePath, {
         stroke: this.canvas_state.currentStrokeColor,
-        opacity: this.canvas_state.currentOpacity,
+        fill: this.canvas_state.currentFillStyle,
+        strokeWidth: this.canvas_state.currentStrokeWidth,
         strokeLineCap: 'round',
         strokeLineJoin: 'round',
-        selectable: true,
+        data: this.uuid,
+        selectable: false,
+        objectCaching: false,
+        shadow: new fabric.Shadow(this.canvas_state.shadow),
         lockMovementX: true,
         lockMovementY: true,
-        shadow: new fabric.Shadow(this.canvas_state.shadow)
+        opacity: this.canvas_state.currentOpacity
       });
       this.fabricCanvas.add(line);
       this.fabricCanvas.requestRenderAll();
@@ -109,15 +113,33 @@ export class LineService {
         this.fabricCanvas.discardActiveObject().renderAll();
       }
       let pointer = this.fabricCanvas.getPointer(event.e);
-      let line = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Line;
-      line.set({ x2: pointer.x, y2: pointer.y });
+      let line: any = this.fabricCanvas.getObjects().find((obj) => obj.data === this.uuid) as fabric.Path;
+      line.path[1][1] = pointer.x;
+      line.path[1][2] = pointer.y;
+      line.setCoords();
       this.fabricCanvas.requestRenderAll();
     }
   }
   stopDrawingLine(): void {
     this.fabricCanvas.selection = true;
-    const line = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Line;
-    this.fabricCanvas.setActiveObject(line);
+    let line = this.fabricCanvas.getObjects().find((obj) => obj.data === this.uuid) as fabric.Path;
+    const renderLine = new fabric.Path(line.path, {
+      stroke: this.canvas_state.currentStrokeColor,
+      fill: this.canvas_state.currentFillStyle,
+      strokeWidth: this.canvas_state.currentStrokeWidth,
+      strokeLineCap: 'round',
+      strokeLineJoin: 'round',
+      data: this.uuid,
+      selectable: true,
+      objectCaching: false,
+      shadow: new fabric.Shadow(this.canvas_state.shadow),
+      lockMovementX: true,
+      lockMovementY: true,
+      opacity: this.canvas_state.currentOpacity
+    });
+    this.fabricCanvas.remove(line);
+    this.fabricCanvas.add(renderLine);
+    this.fabricCanvas.setActiveObject(renderLine);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
     this.fabricCanvas.requestRenderAll();

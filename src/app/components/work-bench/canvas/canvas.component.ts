@@ -214,6 +214,7 @@ export class CanvasComponent implements OnInit, OnChanges {
     switch(tool.enum) {
       case 'TEXT':
         this.fabricCanvas.selection = false;
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.on('mouse:down', (e: any) => {
           this.isTyping = true;
           const pointer = this.fabricCanvas.getPointer(e.e);
@@ -261,6 +262,7 @@ export class CanvasComponent implements OnInit, OnChanges {
       case 'PAN':
         this.fabricCanvas.selection = false;
         this.fabricCanvas.setCursor('grab');
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.on('mouse:down', (e: any) => {
           this.mouseDown = true;
           this.isPanning = true;
@@ -320,6 +322,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         });
         break;
       case 'LINE':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawLine.startDrawingLine.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawLine.keepDrawingLine.bind(this));
@@ -340,6 +343,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         }) 
         break;
       case 'RECTANGLE':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawRectangle.startDrawingRectangle.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawRectangle.keepDrawingRectangle.bind(this));
@@ -360,6 +364,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         })
         break;
       case 'ELLIPSE':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawEllipse.startDrawingEllipse.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawEllipse.keepDrawingEllipse.bind(this));
@@ -380,11 +385,28 @@ export class CanvasComponent implements OnInit, OnChanges {
         }) 
         break;
       case 'ARROW':
+        this.fabricCanvas.discardActiveObject().renderAll();
+        this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawArrow.startDrawingArrow.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawArrow.keepDrawingArrow.bind(this));
-        this.fabricCanvas.on('mouse:up', this.drawArrow.stopDrawingArrow.bind(this));
+        this.fabricCanvas.on('mouse:up', ()=>{
+          this.drawArrow.stopDrawingArrow.bind(this)();
+          const selectTool = () => {
+            this.selectedTool = tools[0];
+            this.removeMouseEvents();
+            this.addMouseEvents(this.selectedTool);
+            this.fabricCanvas.forEachObject((obj) => {
+              obj.lockMovementX = false;
+              obj.lockMovementY = false;
+            });
+            this.canvas_state.activeTool.type = this.selectedTool.enum;
+            localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
+          };
+          selectTool();
+        });
         break;
       case 'FREE_DRAW':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.selection = true;
         this.fabricCanvas.defaultCursor = 'crosshair';
         this.fabricCanvas.hoverCursor = 'crosshair';
@@ -501,9 +523,6 @@ export class CanvasComponent implements OnInit, OnChanges {
       if(this.fabricCanvas) {
         this.selectedTool = changes['selectedTool'].currentValue;
         this.removeMouseEvents();
-        if(this.fabricCanvas.getObjects()){
-          this.fabricCanvas.discardActiveObject().renderAll();
-        }
         this.addMouseEvents(this.selectedTool);
         this.canvas_state.activeTool.type = this.selectedTool.enum;
         localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
@@ -513,6 +532,7 @@ export class CanvasComponent implements OnInit, OnChanges {
     if(changes['shapeProperties']) {
       this.shapeProperties = changes['shapeProperties'].currentValue;
       if(this.fabricCanvas){
+        console.log(this.fabricCanvas.getActiveObjects())
         this.fabricCanvas.getActiveObjects().forEach((obj) => {
           obj.set({
             fill: this.shapeProperties.backgroundColor,
