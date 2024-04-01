@@ -86,13 +86,13 @@ export class EllipseService {
       let ellipse = new fabric.Ellipse({
         left: pointer.x,
         top: pointer.y,
-        rx: 0,
-        ry: 0,
+        rx: 100,
+        ry: 100,
         fill: this.canvas_state.currentFillStyle,
         stroke: this.canvas_state.currentStrokeColor,
         strokeWidth: this.canvas_state.currentStrokeWidth,
         selectable: true,
-        opacity: this.canvas_state.currentOpacity,
+        opacity: 0.5,
         data: this.uuid,
         shadow: new fabric.Shadow(this.canvas_state.shadow),
         lockMovementX: true,
@@ -114,7 +114,8 @@ export class EllipseService {
       if(ellipse){
         ellipse.set({
           ry: Math.abs(pointer.y - (ellipse.top ?? 0)) / 2,
-          rx: Math.abs(pointer.x - (ellipse.left ?? 0)) / 2
+          rx: Math.abs(pointer.x - (ellipse.left ?? 0)) / 2,
+          opacity: this.canvas_state.currentOpacity,
         });
       }
       this.fabricCanvas.renderAll();
@@ -122,7 +123,11 @@ export class EllipseService {
   }
   stopDrawingEllipse(): void {
     this.fabricCanvas.selection = true;
-    this.fabricCanvas.setActiveObject(this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1]);
+    const ellipse = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1] as fabric.Ellipse;
+    ellipse.set({
+      opacity: this.canvas_state.currentOpacity,
+    })
+    this.fabricCanvas.setActiveObject(ellipse);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
     this.fabricCanvas.renderAll();

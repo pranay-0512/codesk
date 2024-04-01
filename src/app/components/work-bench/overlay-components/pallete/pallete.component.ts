@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { fabric } from 'fabric';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
 
 @Component({
@@ -10,17 +11,73 @@ import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-to
 })
 export class PalleteComponent implements OnInit {
   @Input() selectedTool: CoCanvasTool = tools[0];
+  public canvas_state: CoCanvasState = {
+    showWelcomeScreen: false,
+    theme: 'dark', 
+    currentFillStyle: 'rgba(45, 45, 45, 0.05)',
+    currentFontFamily: 0,
+    currentFontSize: 48,
+    currentOpacity: 1,
+    currentRoughness: 1,
+    currentStrokeColor: 'black',
+    currentRoundness: 10,
+    currentStrokeStyle: 'solid',
+    currentStrokeWidth: 5,
+    currentTextAlign: 'left',
+    editingGroupId: null,
+    activeTool: {
+      type: 'SELECT',
+      lastActiveTool: 'SELECT'
+    },
+    exportBackground: false,
+    gridSize: 100,
+    name: 'co_canvas',
+    scrolledOutside: false,
+    relativeScrollX: 0,
+    relativeScrollY: 0,
+    selectedElementIds: {
+      selectedElementIds: []
+    },
+    previousSelectedElementId: {
+      selectedElementId: {
+        elementId: ''
+      }
+    },
+    shadow: {
+      blur: 1,
+      offsetX: 4,
+      offsetY: 4,
+      color: 'green',
+    },
+    font_family: 'comic sans ms',
+    fonts: ['Sevillana', 'Combo', 'Gaegu'],
+    viewBackgroundColor: 'black',
+    zoom: {
+      value: 1,
+      offsetX: 0,
+      offsetY: 0
+    }
+  };
+  @Input() shapeProperties: any = {
+    backgroundColor: this.canvas_state.currentFillStyle,
+    strokeWidth: this.canvas_state.currentStrokeWidth,
+    strokeColor: this.canvas_state.currentStrokeColor,
+    opacity: this.canvas_state.currentOpacity,
+    blur: this.canvas_state.shadow?.blur || 0,
+    offsetX: this.canvas_state.shadow?.offsetX || 0,
+    offsetY: this.canvas_state.shadow?.offsetY || 0,
+    shadowColor: this.canvas_state.shadow?.color || '#000000'
+  }
   @Output() propertyChange: EventEmitter<any> = new EventEmitter();
   public isToolSelected: boolean = false;
-  public backgroundColor: string = '#ffffff';
-  public strokeWidth: number = 1;
-  public strokeColor: string = '#000000';
-  public strokeStyle: string = 'solid';
-  public opacity: number = 1;
-  public blur: number = 0;
-  public offsetX: number = 0;
-  public offsetY: number = 0;
-  public shadowColor: string = '#000000';
+  public backgroundColor: string = this.canvas_state.currentFillStyle;
+  public strokeWidth: number = this.canvas_state.currentStrokeWidth;
+  public strokeColor: string = this.canvas_state.currentStrokeColor;
+  public opacity: number = this.canvas_state.currentOpacity;
+  public blur: number = this.canvas_state.shadow?.blur || 0;
+  public offsetX: number = this.canvas_state.shadow?.offsetX || 0;
+  public offsetY: number = this.canvas_state.shadow?.offsetY || 0;
+  public shadowColor: string = this.canvas_state.shadow?.color || '#000000';
   public fabricCanvas: fabric.Canvas = new fabric.Canvas('co_canvas');
   private propertyChangeSubject = new Subject<any>();
   constructor() { 
@@ -29,7 +86,6 @@ export class PalleteComponent implements OnInit {
       this.propertyChange.emit(value);
     });
   }
-
   ngOnInit(): void {
   }
   emitChangeEvent(): void {
@@ -37,7 +93,6 @@ export class PalleteComponent implements OnInit {
       backgroundColor: this.backgroundColor,
       strokeWidth: this.strokeWidth,
       strokeColor: this.strokeColor,
-      strokeStyle: this.strokeStyle,
       opacity: this.opacity,
       blur: this.blur,
       offsetX: this.offsetX,
@@ -61,6 +116,16 @@ export class PalleteComponent implements OnInit {
           this.isToolSelected = true;
           break;
       }
+    }
+    if(changes['shapeProperties']) {
+      this.backgroundColor = this.shapeProperties.backgroundColor;
+      this.strokeWidth = this.shapeProperties.strokeWidth;
+      this.strokeColor = this.shapeProperties.strokeColor;
+      this.opacity = this.shapeProperties.opacity;
+      this.blur = this.shapeProperties.blur;
+      this.offsetX = this.shapeProperties.offsetX;
+      this.offsetY = this.shapeProperties.offsetY;
+      this.shadowColor = this.shapeProperties.shadowColor;
     }
   }
 }

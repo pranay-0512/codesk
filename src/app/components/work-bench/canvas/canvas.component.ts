@@ -21,17 +21,7 @@ import { Transform } from 'fabric/fabric-impl';
 export class CanvasComponent implements OnInit, OnChanges {
   @Input() clearCanvasMessage!: any;
   @Input() selectedTool: CoCanvasTool = tools[0];
-  @Input() shapeProperties: any = {
-    backgroundColor: '#ffffff',
-    strokeWidth: 1,
-    strokeColor: '#000000',
-    strokeStyle: 'solid',
-    opacity: 1,
-    blur: 0,
-    offsetX: 0,
-    offsetY: 0,
-    shadowColor: '#000000'
-  };
+  @Output() shapePropertiesChange = new EventEmitter<any>();
   @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public fabricCanvas!: fabric.Canvas;
   public mouseDown: boolean = false;
@@ -87,6 +77,16 @@ export class CanvasComponent implements OnInit, OnChanges {
       offsetX: 0,
       offsetY: 0
     }
+  };
+  @Input() shapeProperties: any = {
+    backgroundColor: this.canvas_state.currentFillStyle,
+    strokeWidth: this.canvas_state.currentStrokeWidth,
+    strokeColor: this.canvas_state.currentStrokeColor,
+    opacity: this.canvas_state.currentOpacity,
+    blur: this.canvas_state.shadow?.blur,
+    offsetX: this.canvas_state.shadow?.offsetX,
+    offsetY: this.canvas_state.shadow?.offsetY,
+    shadowColor: this.canvas_state.shadow?.color
   };
   public theme: string = this.canvas_state.theme === 'light' ? 'rgb(255,255,0)' : 'rgba(0,0,0,1)';
   constructor(public shapeService: WebsocketShapeService, public drawLine: LineService, public drawRectangle: RectangleService, public drawEllipse: EllipseService, public drawArrow: ArrowService, public drawFree: FreeDrawService) {
@@ -179,9 +179,8 @@ export class CanvasComponent implements OnInit, OnChanges {
             activeObject.set({ fontFamily: font });
           }
         }).catch(function(e) {
-          console.log(e)
           alert('font loading failed ' + font);
-        });
+        }); 
     }
   }
   addZoomEvent(): void {
@@ -231,6 +230,12 @@ export class CanvasComponent implements OnInit, OnChanges {
             originY: 'center',
             hasControls: false,
           });
+          if (e.target) {
+            const surrObject = e.target as fabric.Object;
+            const surrObjectCenter = surrObject?.getCenterPoint();
+            text.set({ left: surrObjectCenter.x, top: surrObjectCenter.y });
+          }
+          text.setCoords();
           this.fabricCanvas.add(text);
           this.fabricCanvas.setActiveObject(text);
           text.enterEditing();
@@ -247,6 +252,7 @@ export class CanvasComponent implements OnInit, OnChanges {
             this.isTyping = false;
             text.hiddenTextarea?.blur();
             this.fabricCanvas.renderAll();
+            text.bringToFront();
             const selectTool = () => {
               this.selectedTool = tools[0];
               this.removeMouseEvents();
@@ -300,9 +306,47 @@ export class CanvasComponent implements OnInit, OnChanges {
       case 'SELECT':
         this.fabricCanvas.selection = true;
         this.fabricCanvas.setCursor('default');
+        this.fabricCanvas.on('mouse:dblclick', (e: any) => {
+          if (e.target) {
+            const target = e.target as fabric.Object;
+            target.sendToBack();
+            console.log(target)
+            this.fabricCanvas.renderAll();
+          }
+        })
         this.fabricCanvas.on('mouse:down', (e: any) => {
           if (e.target) {
             this.fabricCanvas.setCursor('move');
+            if(this.fabricCanvas.getActiveObjects().length > 1) {
+              return;
+            }
+            if (e.target.type === 'group' && e.target instanceof fabric.Group) {
+              (e.target as fabric.Group).forEachObject((obj) => {
+                this.shapeProperties = {
+                  backgroundColor: obj.fill,
+                  strokeWidth: obj.strokeWidth,
+                  strokeColor: obj.stroke,
+                  opacity: obj.opacity,
+                  blur: (obj.shadow as fabric.Shadow)?.blur,
+                  offsetX: (obj.shadow as fabric.Shadow)?.offsetX,
+                  offsetY: (obj.shadow as fabric.Shadow)?.offsetY,
+                  shadowColor: (obj.shadow as fabric.Shadow)?.color
+                }
+              });
+            }
+            else {
+              this.shapeProperties = {
+                backgroundColor: e.target.fill,
+                strokeWidth: e.target.strokeWidth,
+                strokeColor: e.target.stroke,
+                opacity: e.target.opacity,
+                blur: e.target.shadow?.blur,
+                offsetX: e.target.shadow?.offsetX,
+                offsetY: e.target.shadow?.offsetY,
+                shadowColor: e.target.shadow?.color
+              }
+            }
+            this.shapePropertiesChange.emit(this.shapeProperties);
           }
           if(e.e.buttons === 1) {
             // this.shapeService.sendMessage(e.pointer);
@@ -532,29 +576,45 @@ export class CanvasComponent implements OnInit, OnChanges {
     if(changes['shapeProperties']) {
       this.shapeProperties = changes['shapeProperties'].currentValue;
       if(this.fabricCanvas){
-        console.log(this.fabricCanvas.getActiveObjects())
         this.fabricCanvas.getActiveObjects().forEach((obj) => {
-          obj.set({
-            fill: this.shapeProperties.backgroundColor,
-            strokeWidth: this.shapeProperties.strokeWidth,
-            stroke: this.shapeProperties.strokeColor,
-            strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
-            opacity: this.shapeProperties.opacity,
-            shadow: new fabric.Shadow({
-              blur: this.shapeProperties.blur,
-              offsetX: this.shapeProperties.offsetX,
-              offsetY: this.shapeProperties.offsetY,
-              color: this.shapeProperties.shadowColor
-            })
-          });
+          if (obj.type === 'group' && obj instanceof fabric.Group) {
+            (obj as fabric.Group).forEachObject((innerObj) => {
+              innerObj.set({
+                fill: this.shapeProperties.backgroundColor,
+                strokeWidth: this.shapeProperties.strokeWidth,
+                stroke: this.shapeProperties.strokeColor,
+                strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
+                opacity: this.shapeProperties.opacity,
+                shadow: new fabric.Shadow({
+                  blur: this.shapeProperties.blur,
+                  offsetX: this.shapeProperties.offsetX,
+                  offsetY: this.shapeProperties.offsetY,
+                  color: this.shapeProperties.shadowColor
+                })
+              });
+            });
+          }
+          else {
+            obj.set({
+              fill: this.shapeProperties.backgroundColor,
+              strokeWidth: this.shapeProperties.strokeWidth,
+              stroke: this.shapeProperties.strokeColor,
+              strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
+              opacity: this.shapeProperties.opacity,
+              shadow: new fabric.Shadow({
+                blur: this.shapeProperties.blur,
+                offsetX: this.shapeProperties.offsetX,
+                offsetY: this.shapeProperties.offsetY,
+                color: this.shapeProperties.shadowColor
+              })
+            });
+          }
         });
         this.fabricCanvas.renderAll();
         localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
       }
-
     }
   }
-  
   ngOnDestroy(): void {
     this.subscriptionArray.forEach((subscription) => {
       subscription.unsubscribe();
