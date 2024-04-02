@@ -1,5 +1,5 @@
 <div class="overlay" *ngIf="isToolSelected">
-  <div class="color-palette">
+  <div class="color-palette" id="palette">
     <div>
       <label for="fillColor">background color</label>
       <input type="color" [(ngModel)]="backgroundColor" (ngModelChange)="emitChangeEvent()">
@@ -12,14 +12,14 @@
       <label for="strokeColor">stroke color</label>
       <input type="color" [(ngModel)]="strokeColor" (ngModelChange)="emitChangeEvent()">
     </div>
-    <div>
+    <!-- <div>
       <label for="strokeStyle">stroke style</label>
       <select [(ngModel)]="strokeStyle" (ngModelChange)="emitChangeEvent()">
         <option value="solid">Solid</option>
         <option value="dashed">Dashed</option>
         <option value="dotted">Dotted</option>
       </select>
-    </div>
+    </div> -->
     <div>
       <label for="opacity">opacity</label>
       <input type="range" min="0" max="1" step="0.01" [(ngModel)]="opacity" (ngModelChange)="emitChangeEvent()">

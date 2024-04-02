@@ -21,20 +21,11 @@ import { Transform } from 'fabric/fabric-impl';
 export class CanvasComponent implements OnInit, OnChanges {
   @Input() clearCanvasMessage!: any;
   @Input() selectedTool: CoCanvasTool = tools[0];
-  @Input() shapeProperties: any = {
-    backgroundColor: '#ffffff',
-    strokeWidth: 1,
-    strokeColor: '#000000',
-    strokeStyle: 'solid',
-    opacity: 1,
-    blur: 0,
-    offsetX: 0,
-    offsetY: 0,
-    shadowColor: '#000000'
-  };
+  @Output() shapePropertiesChange = new EventEmitter<any>();
   @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public fabricCanvas!: fabric.Canvas;
   public mouseDown: boolean = false;
+  public mouseMoving: boolean = false;
   public isPanning: boolean = false;
   public clipboard: any = null;
   public isSelected: boolean = false;
@@ -88,6 +79,16 @@ export class CanvasComponent implements OnInit, OnChanges {
       offsetY: 0
     }
   };
+  @Input() shapeProperties: any = {
+    backgroundColor: this.canvas_state.currentFillStyle,
+    strokeWidth: this.canvas_state.currentStrokeWidth,
+    strokeColor: this.canvas_state.currentStrokeColor,
+    opacity: this.canvas_state.currentOpacity,
+    blur: this.canvas_state.shadow?.blur,
+    offsetX: this.canvas_state.shadow?.offsetX,
+    offsetY: this.canvas_state.shadow?.offsetY,
+    shadowColor: this.canvas_state.shadow?.color
+  };
   public theme: string = this.canvas_state.theme === 'light' ? 'rgb(255,255,0)' : 'rgba(0,0,0,1)';
   constructor(public shapeService: WebsocketShapeService, public drawLine: LineService, public drawRectangle: RectangleService, public drawEllipse: EllipseService, public drawArrow: ArrowService, public drawFree: FreeDrawService) {
     const body = document.querySelector('body');
@@ -127,7 +128,8 @@ export class CanvasComponent implements OnInit, OnChanges {
     this.addMouseEvents(this.selectedTool);
     this.customSelectionBorder(); 
     this.addZoomEvent();
-    this.addKeyEvents()
+    this.addKeyEvents();
+    this.addCustomControlPoints();
   }
   getFromLocalStorage(): void {
     const shapes = JSON.parse(localStorage.getItem('cocanvas_shapes') ?? '[]');
@@ -141,10 +143,10 @@ export class CanvasComponent implements OnInit, OnChanges {
       cornerColor: '#F4DF4EFF',
       cornerStrokeColor: '#949398FF',
       cornerStyle: 'circle',
-      cornerSize: 10,
+      cornerSize: 8,
       padding: 10,
       borderColor: '#949398FF',
-      borderDashArray: [10, 10],
+      borderDashArray: [20, 20],
       centeredScaling: false,
     });
   }
@@ -179,9 +181,8 @@ export class CanvasComponent implements OnInit, OnChanges {
             activeObject.set({ fontFamily: font });
           }
         }).catch(function(e) {
-          console.log(e)
           alert('font loading failed ' + font);
-        });
+        }); 
     }
   }
   addZoomEvent(): void {
@@ -214,6 +215,7 @@ export class CanvasComponent implements OnInit, OnChanges {
     switch(tool.enum) {
       case 'TEXT':
         this.fabricCanvas.selection = false;
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.on('mouse:down', (e: any) => {
           this.isTyping = true;
           const pointer = this.fabricCanvas.getPointer(e.e);
@@ -230,6 +232,12 @@ export class CanvasComponent implements OnInit, OnChanges {
             originY: 'center',
             hasControls: false,
           });
+          if (e.target) {
+            const surrObject = e.target as fabric.Object;
+            const surrObjectCenter = surrObject?.getCenterPoint();
+            text.set({ left: surrObjectCenter.x, top: surrObjectCenter.y });
+          }
+          text.setCoords();
           this.fabricCanvas.add(text);
           this.fabricCanvas.setActiveObject(text);
           text.enterEditing();
@@ -246,6 +254,7 @@ export class CanvasComponent implements OnInit, OnChanges {
             this.isTyping = false;
             text.hiddenTextarea?.blur();
             this.fabricCanvas.renderAll();
+            text.bringToFront();
             const selectTool = () => {
               this.selectedTool = tools[0];
               this.removeMouseEvents();
@@ -261,6 +270,7 @@ export class CanvasComponent implements OnInit, OnChanges {
       case 'PAN':
         this.fabricCanvas.selection = false;
         this.fabricCanvas.setCursor('grab');
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.on('mouse:down', (e: any) => {
           this.mouseDown = true;
           this.isPanning = true;
@@ -271,8 +281,9 @@ export class CanvasComponent implements OnInit, OnChanges {
           }
         });
         this.fabricCanvas.on('mouse:move', (e: any) => {
+          this.mouseMoving = true;
           this.fabricCanvas.setCursor('grab');
-          if (this.mouseDown && this.isPanning) {
+          if (this.mouseDown && this.isPanning && this.mouseMoving) {
             this.fabricCanvas.setCursor('grabbing');
             this.fabricCanvas.selection = false;
             if (this.fabricCanvas.getActiveObject()) {
@@ -289,6 +300,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.on('mouse:up', (e: any) => {
           this.fabricCanvas.setCursor('grab');
           this.mouseDown = false;
+          this.mouseMoving = false;
           this.isPanning = false;
           this.fabricCanvas.selection = false;
           this.fabricCanvas.renderAll();
@@ -298,9 +310,48 @@ export class CanvasComponent implements OnInit, OnChanges {
       case 'SELECT':
         this.fabricCanvas.selection = true;
         this.fabricCanvas.setCursor('default');
+        this.fabricCanvas.on('mouse:dblclick', (e: any) => {
+          if (e.target) {
+            const target = e.target as fabric.Object;
+            target.sendToBack();
+            this.fabricCanvas.renderAll();
+          }
+        })
         this.fabricCanvas.on('mouse:down', (e: any) => {
+          this.mouseDown = true;
           if (e.target) {
             this.fabricCanvas.setCursor('move');
+            this.addCustomControlPoints();
+            if(this.fabricCanvas.getActiveObjects().length > 1) {
+              return;
+            }
+            if (e.target.type === 'group' && e.target instanceof fabric.Group) {
+              (e.target as fabric.Group).forEachObject((obj) => {
+                this.shapeProperties = {
+                  backgroundColor: obj.fill,
+                  strokeWidth: obj.strokeWidth,
+                  strokeColor: obj.stroke,
+                  opacity: obj.opacity,
+                  blur: (obj.shadow as fabric.Shadow)?.blur,
+                  offsetX: (obj.shadow as fabric.Shadow)?.offsetX,
+                  offsetY: (obj.shadow as fabric.Shadow)?.offsetY,
+                  shadowColor: (obj.shadow as fabric.Shadow)?.color
+                }
+              });
+            }
+            else {
+              this.shapeProperties = {
+                backgroundColor: e.target.fill,
+                strokeWidth: e.target.strokeWidth,
+                strokeColor: e.target.stroke,
+                opacity: e.target.opacity,
+                blur: e.target.shadow?.blur,
+                offsetX: e.target.shadow?.offsetX,
+                offsetY: e.target.shadow?.offsetY,
+                shadowColor: e.target.shadow?.color
+              }
+            }
+            this.shapePropertiesChange.emit(this.shapeProperties);
           }
           if(e.e.buttons === 1) {
             // this.shapeService.sendMessage(e.pointer);
@@ -309,17 +360,28 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.on('mouse:move', (e)=> {
           this.fabricCanvas.defaultCursor = 'default';
           this.fabricCanvas.hoverCursor = 'default';
+          this.mouseMoving = true;
           if(e.target) {
             this.fabricCanvas.hoverCursor = 'move';
           }
           // this.shapeService.sendMessage(e.pointer);
         })
-        this.fabricCanvas.on('object:modified', (e: any) => {
+        this.fabricCanvas.on('mouse:up', () => {
+          this.mouseDown = false;
+          this.mouseMoving = false;
+          this.fabricCanvas.defaultCursor = 'default';
+          this.fabricCanvas.hoverCursor = 'default';
+          this.fabricCanvas.setCursor('default');
+          this.fabricCanvas.selection = true;
+          this.fabricCanvas.renderAll();
+        })
+        this.fabricCanvas.on('object:modified', () => {
           // this.shapeService.sendMessage(this.fabricCanvas);
           localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
         });
         break;
       case 'LINE':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawLine.startDrawingLine.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawLine.keepDrawingLine.bind(this));
@@ -337,9 +399,11 @@ export class CanvasComponent implements OnInit, OnChanges {
             localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
           selectTool();
+          this.addCustomControlPoints();
         }) 
         break;
       case 'RECTANGLE':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawRectangle.startDrawingRectangle.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawRectangle.keepDrawingRectangle.bind(this));
@@ -360,6 +424,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         })
         break;
       case 'ELLIPSE':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawEllipse.startDrawingEllipse.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawEllipse.keepDrawingEllipse.bind(this));
@@ -380,11 +445,29 @@ export class CanvasComponent implements OnInit, OnChanges {
         }) 
         break;
       case 'ARROW':
+        this.fabricCanvas.discardActiveObject().renderAll();
+        this.fabricCanvas.setCursor('crosshair');
         this.fabricCanvas.on('mouse:down', this.drawArrow.startDrawingArrow.bind(this));
         this.fabricCanvas.on('mouse:move', this.drawArrow.keepDrawingArrow.bind(this));
-        this.fabricCanvas.on('mouse:up', this.drawArrow.stopDrawingArrow.bind(this));
+        this.fabricCanvas.on('mouse:up', ()=>{
+          this.drawArrow.stopDrawingArrow.bind(this)();
+          const selectTool = () => {
+            this.selectedTool = tools[0];
+            this.removeMouseEvents();
+            this.addMouseEvents(this.selectedTool);
+            this.fabricCanvas.forEachObject((obj) => {
+              obj.lockMovementX = false;
+              obj.lockMovementY = false;
+            });
+            this.canvas_state.activeTool.type = this.selectedTool.enum;
+            localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
+          };
+          selectTool();
+          this.addCustomControlPoints();
+        });
         break;
       case 'FREE_DRAW':
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.selection = true;
         this.fabricCanvas.defaultCursor = 'crosshair';
         this.fabricCanvas.hoverCursor = 'crosshair';
@@ -485,26 +568,60 @@ export class CanvasComponent implements OnInit, OnChanges {
     })
     // switch tools with numbers
     window.addEventListener('keydown', (e)=> {
+      if(this.mouseDown && this.mouseMoving) return;
       if (isNaN(parseInt(e.key))) return;
       if (parseInt(e.key) > tools.length) return;
       this.canvas_state.activeTool.lastActiveTool = this.selectedTool.enum;
       this.selectedTool = tools[parseInt(e.key) - 1];
       this.removeMouseEvents();
       this.addMouseEvents(this.selectedTool);
+      this.selectedTool.is_active = true;
+      const prevTool = tools.find((tool)=> tool.enum === this.canvas_state.activeTool.lastActiveTool);
+      if(prevTool) {
+        prevTool.is_active = false;
+        console.log(prevTool.enum, prevTool.is_active, "prevTool")
+        console.log(this.selectedTool.enum, this.selectedTool.is_active, "selectedTool")
+      }
       this.toolSelected.emit({ selectedTool: this.selectedTool })
       this.canvas_state.activeTool.type = this.selectedTool.enum;
       localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
     })
+  }
+  addCustomControlPoints(): void {
+    if(this.fabricCanvas.getActiveObject()) {
+      if(this.fabricCanvas.getActiveObject() instanceof fabric.Group || this.fabricCanvas.getActiveObject()?.type === 'path' || this.fabricCanvas.getActiveObject()?.type==='group') {
+        const group = this.fabricCanvas.getActiveObject() as fabric.Group;
+        // group.hasBorders = false;
+        group.hasControls = false;
+        group.selectable = false;
+        // add custom control points
+        const midPointX = group.getCenterPoint().x;
+        const midPointY = group.getCenterPoint().y;
+        const curvePoint = new fabric.Circle({
+          left: midPointX,
+          top: midPointY,
+          radius: 10,
+          fill: 'red',
+          opacity: 0.5,
+          originX: 'center',
+          originY: 'center',
+          hasControls: false,
+          hasBorders: false,
+          selectable: false,
+          evented: false,
+        });
+        this.fabricCanvas.add(curvePoint);
+        this.fabricCanvas.renderAll();
+      }
+    }
   }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedTool']) {
       if(this.fabricCanvas) {
         this.selectedTool = changes['selectedTool'].currentValue;
         this.removeMouseEvents();
-        if(this.fabricCanvas.getObjects()){
-          this.fabricCanvas.discardActiveObject().renderAll();
-        }
         this.addMouseEvents(this.selectedTool);
+        this.canvas_state.activeTool.lastActiveTool = changes['selectedTool'].previousValue.enum;
         this.canvas_state.activeTool.type = this.selectedTool.enum;
         localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
         this.fabricCanvas.requestRenderAll();
@@ -514,27 +631,44 @@ export class CanvasComponent implements OnInit, OnChanges {
       this.shapeProperties = changes['shapeProperties'].currentValue;
       if(this.fabricCanvas){
         this.fabricCanvas.getActiveObjects().forEach((obj) => {
-          obj.set({
-            fill: this.shapeProperties.backgroundColor,
-            strokeWidth: this.shapeProperties.strokeWidth,
-            stroke: this.shapeProperties.strokeColor,
-            strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
-            opacity: this.shapeProperties.opacity,
-            shadow: new fabric.Shadow({
-              blur: this.shapeProperties.blur,
-              offsetX: this.shapeProperties.offsetX,
-              offsetY: this.shapeProperties.offsetY,
-              color: this.shapeProperties.shadowColor
-            })
-          });
+          if (obj.type === 'group' && obj instanceof fabric.Group) {
+            (obj as fabric.Group).forEachObject((innerObj) => {
+              innerObj.set({
+                fill: this.shapeProperties.backgroundColor,
+                strokeWidth: this.shapeProperties.strokeWidth,
+                stroke: this.shapeProperties.strokeColor,
+                strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
+                opacity: this.shapeProperties.opacity,
+                shadow: new fabric.Shadow({
+                  blur: this.shapeProperties.blur,
+                  offsetX: this.shapeProperties.offsetX,
+                  offsetY: this.shapeProperties.offsetY,
+                  color: this.shapeProperties.shadowColor
+                })
+              });
+            });
+          }
+          else {
+            obj.set({
+              fill: this.shapeProperties.backgroundColor,
+              strokeWidth: this.shapeProperties.strokeWidth,
+              stroke: this.shapeProperties.strokeColor,
+              strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
+              opacity: this.shapeProperties.opacity,
+              shadow: new fabric.Shadow({
+                blur: this.shapeProperties.blur,
+                offsetX: this.shapeProperties.offsetX,
+                offsetY: this.shapeProperties.offsetY,
+                color: this.shapeProperties.shadowColor
+              })
+            });
+          }
         });
         this.fabricCanvas.renderAll();
         localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
       }
-
     }
   }
-  
   ngOnDestroy(): void {
     this.subscriptionArray.forEach((subscription) => {
       subscription.unsubscribe();

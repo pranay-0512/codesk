@@ -16,7 +16,6 @@ export class WorkBenchComponent implements OnInit {
     backgroundColor: '#ffffff',
     strokeWidth: 1,
     strokeColor: '#000000',
-    strokeStyle: 'solid',
     opacity: 1,
     blur: 0,
     offsetX: 0,
@@ -70,7 +69,9 @@ export class WorkBenchComponent implements OnInit {
   }
   updateShapeProperty(event: any): void {
     this.shapeProperties = { ...this.shapeProperties, ...event };
-    console.log(this.shapeProperties)
+  }
+  onShapePropertiesChange(event: any): void {
+    this.shapeProperties = { ...this.shapeProperties, ...event };
   }
 }
 export interface ToolSelectedEvent {

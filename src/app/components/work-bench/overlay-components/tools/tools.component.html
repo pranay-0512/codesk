@@ -2,7 +2,7 @@
     <div *ngFor="let item of tools; let i = index">
         <div class="m-2" (click)="selectTool(item)">
             <mat-icon>
-                <span class="material-symbols-outlined" title={{item.name}}>
+                <span class="material-symbols-outlined" title={{item.name}} [ngClass]="item.is_active ? 'tool-selected' : ''">
                     {{item.icon}}
                 </span>
             </mat-icon>

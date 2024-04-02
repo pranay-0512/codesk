@@ -10,6 +10,7 @@ import { WebsocketShapeService } from '../../websocket/websocket-shape.service';
 export class RectangleService {
   private fabricCanvas: fabric.Canvas;
   private mouseDown: boolean = false;
+  private mouseMoving: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'light',
@@ -89,13 +90,13 @@ export class RectangleService {
       let rect = new fabric.Rect({
         left: pointer.x,
         top: pointer.y,
-        width: 0,
-        height: 0,
+        width: 150,
+        height: 200,
         fill: this.canvas_state.currentFillStyle,
         stroke: this.canvas_state.currentStrokeColor,
         strokeWidth: this.canvas_state.currentStrokeWidth,
         selectable: true,
-        opacity: this.canvas_state.currentOpacity,
+        opacity: 0.5,
         data: this.uuid,
         shadow: new fabric.Shadow(this.canvas_state.shadow),
         rx: this.canvas_state.currentRoundness,
@@ -111,7 +112,8 @@ export class RectangleService {
   }
   keepDrawingRectangle(event: any) {
     this.fabricCanvas.setCursor('crosshair');
-    if(this.mouseDown) {
+    this.mouseMoving = true;
+    if(this.mouseDown && this.mouseMoving) {
       let pointer = this.fabricCanvas.getPointer(event.e);
       if(this.fabricCanvas.getObjects()){
         this.fabricCanvas.discardActiveObject().renderAll();
@@ -120,7 +122,8 @@ export class RectangleService {
       if(rectangle) {
         rectangle.set({
           width: Math.abs(pointer.x - (rectangle.left ?? 0)),
-          height: Math.abs(pointer.y - (rectangle.top ?? 0))
+          height: Math.abs(pointer.y - (rectangle.top ?? 0)),
+          opacity: this.canvas_state.currentOpacity,
         });
       }
       // this.shapeService.sendMessage(this.fabricCanvas);
@@ -129,9 +132,14 @@ export class RectangleService {
   }
   stopDrawingRectangle(): void {
     this.fabricCanvas.selection = true;
-    this.fabricCanvas.setActiveObject(this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1]);
+    const rect = this.fabricCanvas.getObjects()[this.fabricCanvas.getObjects().length - 1];
+    rect.set({
+      opacity: this.canvas_state.currentOpacity,
+    })
+    this.fabricCanvas.setActiveObject(rect);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
+    this.mouseMoving = false;
     this.fabricCanvas.renderAll();
   }
 }

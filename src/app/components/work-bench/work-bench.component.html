@@ -1,8 +1,8 @@
 <app-tools (toolSelected)="onToolSelected($event)"></app-tools>
-<app-canvas [selectedTool]="selectedTool" (toolSelected)="onToolSelected($event)" [shapeProperties]="shapeProperties"></app-canvas>
+<app-canvas [selectedTool]="selectedTool" (toolSelected)="onToolSelected($event)" [shapeProperties]="shapeProperties" (shapePropertiesChange)="onShapePropertiesChange($event)"></app-canvas>
 <app-dropdown-menu></app-dropdown-menu>
 <app-utility></app-utility>
-<app-pallete [selectedTool]="selectedTool" (propertyChange)="updateShapeProperty($event)"></app-pallete>
+<app-pallete [selectedTool]="selectedTool" (propertyChange)="updateShapeProperty($event)" [shapeProperties]="shapeProperties"></app-pallete>
 <app-button 
     topPos="10px" 
     rightPos="120px" 
