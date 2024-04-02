@@ -10,6 +10,7 @@ import { WebsocketShapeService } from '../../websocket/websocket-shape.service';
 export class RectangleService {
   private fabricCanvas: fabric.Canvas;
   private mouseDown: boolean = false;
+  private mouseMoving: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'light',
@@ -111,7 +112,8 @@ export class RectangleService {
   }
   keepDrawingRectangle(event: any) {
     this.fabricCanvas.setCursor('crosshair');
-    if(this.mouseDown) {
+    this.mouseMoving = true;
+    if(this.mouseDown && this.mouseMoving) {
       let pointer = this.fabricCanvas.getPointer(event.e);
       if(this.fabricCanvas.getObjects()){
         this.fabricCanvas.discardActiveObject().renderAll();
@@ -137,6 +139,7 @@ export class RectangleService {
     this.fabricCanvas.setActiveObject(rect);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
+    this.mouseMoving = false;
     this.fabricCanvas.renderAll();
   }
 }

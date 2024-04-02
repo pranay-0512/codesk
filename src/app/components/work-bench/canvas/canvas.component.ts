@@ -25,6 +25,7 @@ export class CanvasComponent implements OnInit, OnChanges {
   @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public fabricCanvas!: fabric.Canvas;
   public mouseDown: boolean = false;
+  public mouseMoving: boolean = false;
   public isPanning: boolean = false;
   public clipboard: any = null;
   public isSelected: boolean = false;
@@ -127,7 +128,8 @@ export class CanvasComponent implements OnInit, OnChanges {
     this.addMouseEvents(this.selectedTool);
     this.customSelectionBorder(); 
     this.addZoomEvent();
-    this.addKeyEvents()
+    this.addKeyEvents();
+    this.addCustomControlPoints();
   }
   getFromLocalStorage(): void {
     const shapes = JSON.parse(localStorage.getItem('cocanvas_shapes') ?? '[]');
@@ -141,10 +143,10 @@ export class CanvasComponent implements OnInit, OnChanges {
       cornerColor: '#F4DF4EFF',
       cornerStrokeColor: '#949398FF',
       cornerStyle: 'circle',
-      cornerSize: 10,
+      cornerSize: 8,
       padding: 10,
       borderColor: '#949398FF',
-      borderDashArray: [10, 10],
+      borderDashArray: [20, 20],
       centeredScaling: false,
     });
   }
@@ -279,8 +281,9 @@ export class CanvasComponent implements OnInit, OnChanges {
           }
         });
         this.fabricCanvas.on('mouse:move', (e: any) => {
+          this.mouseMoving = true;
           this.fabricCanvas.setCursor('grab');
-          if (this.mouseDown && this.isPanning) {
+          if (this.mouseDown && this.isPanning && this.mouseMoving) {
             this.fabricCanvas.setCursor('grabbing');
             this.fabricCanvas.selection = false;
             if (this.fabricCanvas.getActiveObject()) {
@@ -297,6 +300,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.on('mouse:up', (e: any) => {
           this.fabricCanvas.setCursor('grab');
           this.mouseDown = false;
+          this.mouseMoving = false;
           this.isPanning = false;
           this.fabricCanvas.selection = false;
           this.fabricCanvas.renderAll();
@@ -310,13 +314,14 @@ export class CanvasComponent implements OnInit, OnChanges {
           if (e.target) {
             const target = e.target as fabric.Object;
             target.sendToBack();
-            console.log(target)
             this.fabricCanvas.renderAll();
           }
         })
         this.fabricCanvas.on('mouse:down', (e: any) => {
+          this.mouseDown = true;
           if (e.target) {
             this.fabricCanvas.setCursor('move');
+            this.addCustomControlPoints();
             if(this.fabricCanvas.getActiveObjects().length > 1) {
               return;
             }
@@ -355,12 +360,22 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.on('mouse:move', (e)=> {
           this.fabricCanvas.defaultCursor = 'default';
           this.fabricCanvas.hoverCursor = 'default';
+          this.mouseMoving = true;
           if(e.target) {
             this.fabricCanvas.hoverCursor = 'move';
           }
           // this.shapeService.sendMessage(e.pointer);
         })
-        this.fabricCanvas.on('object:modified', (e: any) => {
+        this.fabricCanvas.on('mouse:up', () => {
+          this.mouseDown = false;
+          this.mouseMoving = false;
+          this.fabricCanvas.defaultCursor = 'default';
+          this.fabricCanvas.hoverCursor = 'default';
+          this.fabricCanvas.setCursor('default');
+          this.fabricCanvas.selection = true;
+          this.fabricCanvas.renderAll();
+        })
+        this.fabricCanvas.on('object:modified', () => {
           // this.shapeService.sendMessage(this.fabricCanvas);
           localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
         });
@@ -384,6 +399,7 @@ export class CanvasComponent implements OnInit, OnChanges {
             localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
           selectTool();
+          this.addCustomControlPoints();
         }) 
         break;
       case 'RECTANGLE':
@@ -447,6 +463,7 @@ export class CanvasComponent implements OnInit, OnChanges {
             localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
           selectTool();
+          this.addCustomControlPoints();
         });
         break;
       case 'FREE_DRAW':
@@ -551,16 +568,52 @@ export class CanvasComponent implements OnInit, OnChanges {
     })
     // switch tools with numbers
     window.addEventListener('keydown', (e)=> {
+      if(this.mouseDown && this.mouseMoving) return;
       if (isNaN(parseInt(e.key))) return;
       if (parseInt(e.key) > tools.length) return;
       this.canvas_state.activeTool.lastActiveTool = this.selectedTool.enum;
       this.selectedTool = tools[parseInt(e.key) - 1];
       this.removeMouseEvents();
       this.addMouseEvents(this.selectedTool);
+      this.selectedTool.is_active = true;
+      const prevTool = tools.find((tool)=> tool.enum === this.canvas_state.activeTool.lastActiveTool);
+      if(prevTool) {
+        prevTool.is_active = false;
+        console.log(prevTool.enum, prevTool.is_active, "prevTool")
+        console.log(this.selectedTool.enum, this.selectedTool.is_active, "selectedTool")
+      }
       this.toolSelected.emit({ selectedTool: this.selectedTool })
       this.canvas_state.activeTool.type = this.selectedTool.enum;
       localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
     })
+  }
+  addCustomControlPoints(): void {
+    if(this.fabricCanvas.getActiveObject()) {
+      if(this.fabricCanvas.getActiveObject() instanceof fabric.Group || this.fabricCanvas.getActiveObject()?.type === 'path' || this.fabricCanvas.getActiveObject()?.type==='group') {
+        const group = this.fabricCanvas.getActiveObject() as fabric.Group;
+        // group.hasBorders = false;
+        group.hasControls = false;
+        group.selectable = false;
+        // add custom control points
+        const midPointX = group.getCenterPoint().x;
+        const midPointY = group.getCenterPoint().y;
+        const curvePoint = new fabric.Circle({
+          left: midPointX,
+          top: midPointY,
+          radius: 10,
+          fill: 'red',
+          opacity: 0.5,
+          originX: 'center',
+          originY: 'center',
+          hasControls: false,
+          hasBorders: false,
+          selectable: false,
+          evented: false,
+        });
+        this.fabricCanvas.add(curvePoint);
+        this.fabricCanvas.renderAll();
+      }
+    }
   }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedTool']) {
@@ -568,6 +621,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.selectedTool = changes['selectedTool'].currentValue;
         this.removeMouseEvents();
         this.addMouseEvents(this.selectedTool);
+        this.canvas_state.activeTool.lastActiveTool = changes['selectedTool'].previousValue.enum;
         this.canvas_state.activeTool.type = this.selectedTool.enum;
         localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
         this.fabricCanvas.requestRenderAll();

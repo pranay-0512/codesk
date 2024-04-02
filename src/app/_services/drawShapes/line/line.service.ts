@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class LineService {
   private fabricCanvas: fabric.Canvas;
   private mouseDown: boolean = false;
+  private mouseMoving: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'light',
@@ -94,7 +95,6 @@ export class LineService {
         data: this.uuid,
         selectable: false,
         objectCaching: false,
-        shadow: new fabric.Shadow(this.canvas_state.shadow),
         lockMovementX: true,
         lockMovementY: true,
         opacity: this.canvas_state.currentOpacity
@@ -105,7 +105,8 @@ export class LineService {
   }
   keepDrawingLine(event: any): void {
     this.fabricCanvas.setCursor('crosshair');
-    if(this.mouseDown) {
+    this.mouseMoving = true;
+    if(this.mouseDown && this.mouseMoving) {
       this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
       this.fabricCanvas.hoverCursor = 'crosshair';
@@ -132,16 +133,17 @@ export class LineService {
       data: this.uuid,
       selectable: true,
       objectCaching: false,
-      shadow: new fabric.Shadow(this.canvas_state.shadow),
       lockMovementX: true,
       lockMovementY: true,
       opacity: this.canvas_state.currentOpacity
     });
+    renderLine.selectable = false;
     this.fabricCanvas.remove(line);
     this.fabricCanvas.add(renderLine);
     this.fabricCanvas.setActiveObject(renderLine);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
+    this.mouseMoving = false;
     this.fabricCanvas.requestRenderAll();
   }
 }

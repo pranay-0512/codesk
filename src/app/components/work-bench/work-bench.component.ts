@@ -69,7 +69,6 @@ export class WorkBenchComponent implements OnInit {
   }
   updateShapeProperty(event: any): void {
     this.shapeProperties = { ...this.shapeProperties, ...event };
-    console.log(this.shapeProperties)
   }
   onShapePropertiesChange(event: any): void {
     this.shapeProperties = { ...this.shapeProperties, ...event };

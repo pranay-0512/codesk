@@ -82,7 +82,6 @@ export class PalleteComponent implements OnInit {
   private propertyChangeSubject = new Subject<any>();
   constructor() { 
     this.propertyChangeSubject.pipe(debounceTime(50000), distinctUntilChanged()).subscribe((value) => {
-      console.log("emitting value", value)
       this.propertyChange.emit(value);
     });
   }

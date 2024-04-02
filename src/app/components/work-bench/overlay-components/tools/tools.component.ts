@@ -19,6 +19,5 @@ export class ToolsComponent implements OnInit {
       t.is_active = t.enum === tool.enum ? true : false;
     });
     this.toolSelected.emit({ selectedTool: tool })
-    console.log("tool selected: ", tool);
   }
 }

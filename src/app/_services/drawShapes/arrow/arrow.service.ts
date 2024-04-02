@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class ArrowService {
   private fabricCanvas: fabric.Canvas;
   private mouseDown: boolean = false;
+  private mouseMoving: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'light',
@@ -94,7 +95,6 @@ export class ArrowService {
         data: 'arrowLine',
         selectable: false,
         objectCaching: false,
-        shadow: new fabric.Shadow(this.canvas_state.shadow),
         lockMovementX: true,
         lockMovementY: true,
         opacity: this.canvas_state.currentOpacity
@@ -113,7 +113,6 @@ export class ArrowService {
         evented: false,
         originX: 'center',
         originY: 'center',
-        shadow: new fabric.Shadow(this.canvas_state.shadow),
         lockMovementX: true,
         lockMovementY: true,
         opacity: this.canvas_state.currentOpacity
@@ -124,7 +123,8 @@ export class ArrowService {
   }
   keepDrawingArrow(event: any) {
     this.fabricCanvas.setCursor('crosshair');
-    if(this.mouseDown) {
+    this.mouseMoving = true;
+    if(this.mouseDown && this.mouseMoving) {
       this.fabricCanvas.selection = false;
       this.fabricCanvas.defaultCursor = 'crosshair';
       this.fabricCanvas.hoverCursor = 'crosshair';
@@ -158,7 +158,6 @@ export class ArrowService {
       strokeLineJoin: 'round',
       selectable: true,
       objectCaching: false,
-      shadow: new fabric.Shadow(this.canvas_state.shadow),
       lockMovementX: true,
       lockMovementY: true,
       opacity: this.canvas_state.currentOpacity
@@ -168,11 +167,13 @@ export class ArrowService {
       data: {uuid: this.uuid, type: 'arrowGroup'},
       objectCaching: false
     });
+    group.selectable = false;
     this.fabricCanvas.remove(line,arrowHead1);
     this.fabricCanvas.add(group);
     this.fabricCanvas.setActiveObject(group);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
+    this.mouseMoving = false;
     this.fabricCanvas.requestRenderAll();
   }
 }

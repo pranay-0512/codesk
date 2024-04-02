@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class EllipseService {
   private fabricCanvas: fabric.Canvas;
   private mouseDown: boolean = false;
+  private mouseMoving: boolean = false;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'light',
@@ -105,7 +106,8 @@ export class EllipseService {
   }
   keepDrawingEllipse(event: any) {
     this.fabricCanvas.setCursor('crosshair');
-    if(this.mouseDown) {
+    this.mouseMoving = true;
+    if(this.mouseDown && this.mouseMoving) {
       let pointer = this.fabricCanvas.getPointer(event.e);
       if(this.fabricCanvas.getObjects()){
         this.fabricCanvas.discardActiveObject().renderAll();
@@ -130,6 +132,7 @@ export class EllipseService {
     this.fabricCanvas.setActiveObject(ellipse);
     localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
     this.mouseDown = false;
+    this.mouseMoving = false;
     this.fabricCanvas.renderAll();
   }
 }
