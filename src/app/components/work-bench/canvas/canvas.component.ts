@@ -12,7 +12,6 @@ import { FreeDrawService } from 'src/app/_services/drawShapes/free-draw/free-dra
 import { v4 as uuidv4 } from 'uuid';
 import * as FontFaceObserver from 'fontfaceobserver';
 import { ToolSelectedEvent } from '../work-bench.component';
-import { Transform } from 'fabric/fabric-impl';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -32,6 +31,7 @@ export class CanvasComponent implements OnInit, OnChanges {
   public secondaryCursor: any;
   public subscriptionArray: any[] = [];
   public isTyping: boolean = false;
+  public canvas_shapes: any
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'dark', 
@@ -41,9 +41,9 @@ export class CanvasComponent implements OnInit, OnChanges {
     currentOpacity: 1,
     currentRoughness: 1,
     currentStrokeColor: 'black',
-    currentRoundness: 10,
+    currentRoundness: 20,
     currentStrokeStyle: 'solid',
-    currentStrokeWidth: 5,
+    currentStrokeWidth: 3,
     currentTextAlign: 'left',
     editingGroupId: null,
     activeTool: {
@@ -68,7 +68,7 @@ export class CanvasComponent implements OnInit, OnChanges {
       blur: 1,
       offsetX: 4,
       offsetY: 4,
-      color: 'green',
+      color: 'aqua',
     },
     font_family: 'comic sans ms',
     fonts: ['Sevillana', 'Combo', 'Gaegu'],
@@ -95,7 +95,7 @@ export class CanvasComponent implements OnInit, OnChanges {
     body?.setAttribute('style', 'overflow: hidden');
     window.addEventListener('storage', (event) => {
       if (event.key === 'cocanvas_shapes') {
-        this.getFromLocalStorage();
+        this.canvas_shapes = this.getFromLocalStorage();
       }
       if (event.key === 'cocanvas_state') {
         this.canvas_state = JSON.parse(event.newValue ?? '{}');
@@ -131,11 +131,12 @@ export class CanvasComponent implements OnInit, OnChanges {
     this.addKeyEvents();
     this.addCustomControlPoints();
   }
-  getFromLocalStorage(): void {
+  getFromLocalStorage(): any {
     const shapes = JSON.parse(localStorage.getItem('cocanvas_shapes') ?? '[]');
     this.fabricCanvas.loadFromJSON(shapes, () => {
       this.fabricCanvas.renderAll();
     });
+    return shapes;
   }
   customSelectionBorder(): void {
     fabric.Object.prototype.set({
@@ -227,9 +228,9 @@ export class CanvasComponent implements OnInit, OnChanges {
             fill: 'black',
             opacity: this.canvas_state.currentOpacity,
             textAlign: this.canvas_state.currentTextAlign,
-            cursorColor: 'red',
-            originX: 'center',
-            originY: 'center',
+            cursorColor: 'yellow',
+            originX: 'left',
+            originY: 'top',
             hasControls: false,
           });
           if (e.target) {
@@ -612,6 +613,16 @@ export class CanvasComponent implements OnInit, OnChanges {
         });
         this.fabricCanvas.add(curvePoint);
         this.fabricCanvas.renderAll();
+      }
+      if(this.fabricCanvas.getActiveObject()?.type === 'i-text') {
+        const text = this.fabricCanvas.getActiveObject() as fabric.Textbox;
+        // tl bl tr br false 
+        text.setControlsVisibility({
+          mt: false,
+          mb: false,
+          ml: false,
+          mr: false,
+        });
       }
     }
   }
