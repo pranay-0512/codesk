@@ -1,0 +1,18 @@
+.overlay {
+    transition: all 0.2s ease-in-out;
+    display: inline;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    user-select: none;
+    padding: 3px;
+    margin: 10px;
+    border: 2px solid #1d1d1d;
+    background-color: #1d1d1d;
+    border-radius: 10px;
+    &:hover {
+        scale: 0.9;
+    }
+}

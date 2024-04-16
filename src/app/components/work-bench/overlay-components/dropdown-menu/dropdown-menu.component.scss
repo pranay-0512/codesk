@@ -2,23 +2,42 @@
     display: inline;
     position: absolute;
     top: 0;
-    left: 0;
+    left: 5px;
     z-index: 1000;
     user-select: none;
-    .menu-list {
-        margin: 5px;
-        background-color: #ffc4c4;
-        border: 1px solid grey;
-        border-radius: 5px;
+    padding: 5px;
+    .menu-container {
+        background-color: #db78077a;
+        border-radius: 10px;
+        padding: 5px 0 5px 0;
+        margin-left: 10px;
+        // z-index: 1000;
+        .menu-list {
+            margin: 5px;
+            width: 200px;
+            cursor: pointer;
+            &:hover {
+                background-color: #d59d5d;
+                border-radius: 10px;
+            }
+            .icon {
+                margin: 10px;
+            }
+            .title {
+                font-size: 14px;
+            }
+        }
     }
     .menu-icon {
+        border: 3px solid transparent;
+        border-radius: 10px;
         display: inline-block;
-        margin: 5px;
         cursor: pointer;
         color: #000000;
         &:hover {
-            color: #ffffff;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: #1d1d1d;
+            border: 3px solid #1d1d1d;
+            border-radius: 10px;
         }
         // animate the dropdown
     }

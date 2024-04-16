@@ -11,8 +11,9 @@ import { SharedModule } from '../shared/shared.module';
 import { MatIconModule } from '@angular/material/icon';
 import { PalleteComponent } from './overlay-components/pallete/pallete.component';
 import { FormsModule } from '@angular/forms';
-
-
+import { SnapshotComponent } from './overlay-components/version-control/snapshot/snapshot.component';
+import { MapComponent } from './overlay-components/version-control/map/map.component';
+import { VersionControlComponent } from './overlay-components/version-control/version-control.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,10 @@ import { FormsModule } from '@angular/forms';
     DropdownMenuComponent,
     ToolsComponent,
     UtilityComponent,
-    PalleteComponent
+    PalleteComponent,
+    SnapshotComponent,
+    MapComponent,
+    VersionControlComponent
   ],
   imports: [
     FormsModule,

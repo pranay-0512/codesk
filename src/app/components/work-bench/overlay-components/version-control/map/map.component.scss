@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Combo&display=swap');
+
+.map-container {
+  position: absolute;
+  transition: 0.3s;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background-color: #db780764;
+  width: 0%;
+  height: 60%;
+  border-radius: 20px;
+  z-index: 1000;
+  overflow: hidden;
+  .title {
+    user-select: none;
+    transition: 0.3s;
+    font-size: 32px;
+    text-align: center;
+    margin-top: 15px;
+    font-family: "Gaegu", system-ui;
+  }
+  .map {
+    width: 100%;
+    height: 100%;
+    transition: 0.3s;
+  }
+}
+.arrow {
+  transition: right 0.3s;
+  position: absolute; 
+  right: 0%;
+  z-index: 1001;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  &:hover {
+    opacity: .9;
+  }
+}
+.opaque {
+  transition: 0.3s;
+  opacity: .5;
+}
+

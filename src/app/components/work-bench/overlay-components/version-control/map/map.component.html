@@ -1,0 +1,11 @@
+<div>
+    <div class="arrow" id="arrow" (click)="toggleCollapse()" [ngClass]="!isCollapsed ? 'opaque' : ''">
+        <img src="https://svgshare.com/i/15Rh.svg" alt="">
+    </div>
+    <div class="map-container" id="map-container" [ngClass]="isCollapsed ? 'collapsed' : '' ">
+        <div class="title">
+            <span>Version control</span>
+        </div>
+        <div class="map" #graphSvg></div>
+    </div>
+</div>

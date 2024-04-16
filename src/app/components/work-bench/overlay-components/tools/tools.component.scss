@@ -1,21 +1,43 @@
-.overlay {
-    display: inline;
+.toolbar {
     position: absolute;
-    top: 0;
-    right: calc(50vw - 10vw);
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #db780764;
+    // background-color: #1d1d1d;
+    border-radius: 20px;
+    padding: 5px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: fit-content;
     z-index: 1000;
-    user-select: none;
+  }
+  
+  .tool {
     cursor: pointer;
-    .material-symbols-outlined {
-        font-variation-settings:
-        'FILL' 0,
-        'wght' 100,
-        'GRAD' 200,
-        'opsz' 40
-    }
-    .tool-selected {
-        background-color: red;
-        opacity: 0.5;
-    }
-}
-
+    padding: 5px;
+    transition: transform 0.2s ease;
+    border-radius: 10px;
+    border: 2px solid transparent;
+  }
+  
+  .tool:hover {
+    transform: scale(0.9);
+    border: 2px solid #db7707;
+  }
+  
+  .tool img {
+    border: 2px solid transparent;
+  }
+  
+  .tool-selected {
+    border: 2px solid #db7707;
+  }
+  
+  .number {
+    position: relative;
+    font-size: 12px;
+    top: 15px;
+    left: 0px;
+  }
