@@ -1,12 +1,10 @@
-<div class="overlay d-flex justify-content-center align-items-center">
-    <div *ngFor="let item of tools; let i = index">
-        <div class="m-2" (click)="selectTool(item)">
-            <mat-icon>
-                <span class="material-symbols-outlined" title={{item.name}} [ngClass]="item.is_active ? 'tool-selected' : ''">
-                    {{item.icon}}
-                </span>
-            </mat-icon>
-            {{item.number}}
-        </div>
+<div class="toolbar">
+    <div *ngFor="let item of tools; let i = index" class="tool" (click)="selectTool(item)" [ngClass]="{'tool-selected': item.is_active}">
+        <span>
+            <div>
+                <img src={{item.icon_path}} title={{item.name}} width="40px"/>
+                <span class="number">{{item.number}}</span> <!-- Move the number inside the icon -->
+            </div>
+        </span>
     </div>
 </div>

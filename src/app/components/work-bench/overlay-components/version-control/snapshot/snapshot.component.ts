@@ -1,6 +1,9 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { v4 as uuvidv4 } from 'uuid';
-import { Edge, Graph, Node, VersionControlService } from 'src/app/_services/version-control/version-control.service';
+import { Node, Tree, VersionControlService } from 'src/app/_services/version-control/version-control.service';
+import * as CryptoJS from 'crypto-js';
+import { environment } from 'src/environments/environment';
+import { MenuItem } from 'src/app/_models/work-bench/menu-item/menu-item.model';
 @Component({
   selector: 'app-snapshot',
   templateUrl: './snapshot.component.html',
@@ -8,11 +11,22 @@ import { Edge, Graph, Node, VersionControlService } from 'src/app/_services/vers
 })
 export class SnapshotComponent implements OnInit {
   @ViewChild('graphContainer') graphContainer: ElementRef | undefined;
-  @Output() graphNodesEmitter = new EventEmitter<Node[]>();
-  @Output() graphEdgesEmitter = new EventEmitter<Edge[]>();
+  @Input() currNodeId!: string;
+  @Output() emitTreeData = new EventEmitter<string>();
+  public camera: MenuItem = {
+    enum: 'CAMERA',
+    title: 'Camera',
+    icon: 'https://svgshare.com/i/15S3.svg',
+    icon_invert: 'https://svgshare.com/i/15SC.svg',
+    link: 'camera',
+    onClick: () => {
+      this.takeSnapshot();
+    }
+  }
   public canvasData: any;
-  public graph: Graph = new Graph([], []);
+  public tree!: Tree;
   constructor(private snapshotService: VersionControlService) {
+    this.tree = this.snapshotService.versionTree;
   }
   ngOnInit(): void {
   }
@@ -20,18 +34,31 @@ export class SnapshotComponent implements OnInit {
     this.canvasData = localStorage.getItem('cocanvas_shapes');
     if(this.canvasData) {
       const snapshotId = uuvidv4();
-      this.snapshotService.takeSnapshot(this.canvasData, snapshotId, new Date().toISOString(), `Node ${this.snapshotService.graph.nodes.length + 1}`);
+      const snapshotDate = new Date().toString();
+      const snapshotLabel = `Node ${this.snapshotService.versionTree.countNodes(this.tree.root)}`;
+      this.snapshotService.takeSnapshot(this.canvasData, snapshotId, snapshotDate, snapshotLabel);
+      this.tree = this.snapshotService.versionTree;
+      const ed = this.encryptTreeData(this.tree, environment.crypto_secretkey);
+      this.emitTreeData.emit(ed);
+    }
+  }
+  encryptTreeData(tree: Tree, key: string): string {
+    const jsonString = JSON.stringify(tree);
+    const encryptedData = CryptoJS.AES.encrypt(jsonString, key).toString();
+    return encryptedData;
+  }
 
-      const numSnapshots = this.snapshotService.graph.nodes.length;
-      if(numSnapshots > 1) {
-        this.snapshotService.graph.addEdge(this.snapshotService.graph.nodes[numSnapshots - 2], this.snapshotService.graph.nodes[numSnapshots - 1]);
-      }
-      this.graph = this.snapshotService.graph;
-      // this.graph.nodes.forEach(node => this.graphNodeEmitter.emit(node));
-      // this.graph.edges.forEach(edge => this.graphEdgeEmitter.emit(edge));
-      this.graphNodesEmitter.emit(this.graph.nodes)
-      this.graphEdgesEmitter.emit(this.graph.edges)
-      console.log(this.graph.edges)
+  findCurrNode(node_id: string): Node {
+    // return the current node from the tree with the given node_id using bfs from snapshotService
+    return this.snapshotService.findNode(this.tree.root, node_id);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if(!changes['currNodeId'].firstChange){
+      const current_node = this.findCurrNode(this.currNodeId);
+      this.tree.currentNode = current_node;
+      const ed = this.encryptTreeData(this.tree, environment.crypto_secretkey);
+      this.emitTreeData.emit(ed);
     }
   }
 }

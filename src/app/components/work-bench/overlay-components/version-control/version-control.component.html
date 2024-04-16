@@ -1,3 +1,3 @@
-<app-snapshot (graphEdgesEmitter)="receiveGraphEdgeData($event)" (graphNodesEmitter)="receiveGraphNodeData($event)"></app-snapshot>
-<app-map [nodeData]="graphNodes" [edgeData]="graphEdges"></app-map>
+<app-snapshot (emitTreeData)="receiveTreeData($event)" [currNodeId]="currNodeId"></app-snapshot>
+<app-map [encryptedTreeData]="encryptedTreeData" (emitCurrentNodeId)="receiveCurrNodeId($event)"></app-map>
  

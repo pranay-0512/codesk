@@ -7,90 +7,100 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class VersionControlService {
   // This service will be used to implement version control in the workbench.
-  // It will implement Directed Acyclic Graph to store the snapshots. 
-  // A snapshot is a state of the canvas at a particular time (date) with unique ID. It is stored in a vertex in the DAG.
+  // It will implement Tree to store the snapshots. 
+  // A snapshot is a state of the canvas at a particular time (date) with unique ID. It is stored in a node in the tree.
   // Always keep track of the current vertex where user is working.
-  // Basically everytime a snapshot is taken, a new vertex will be created, and an edge will be directed from the current vertex
-      // to the new vertex. Use adjacency list to store the graph.
+  // Everytime a snapshot is taken, and the current node does not have any children, continue from that node.
+  // If the current node has children, create a new branch. The node will have multiple children.
   // before taking a snapshot, check for changes in canvas state. If there are no changes, the snapshot will not be taken
       // or new branch won't be created.
-  public graph!: Graph;
-  public current!: Node;
+
+
+  public versionTree!: Tree;
+  public currentNode!: Node;
   constructor() {
-    this.graph = new Graph([], []);
+    this.versionTree = new Tree(uuidv4(), null, new Date().toString(), 'root');
   }
-
   takeSnapshot(canvasData: any, id: string, date: string, label: string): void {
-    const vertex = new Node(id, canvasData, date, label);
-    this.graph.addVertex(vertex.id, vertex.data, vertex.date, vertex.label);
-    this.current = vertex;
+    // take a snapshot of the current state of the canvas
+    const node = new Node(id, canvasData, date, label);
+    this.versionTree.addNode(node.id, node.data, node.date, node.label);
+    this.currentNode = node;
   }
+  findNode(root: Node, node_id: string): Node {
+    // return the node with the given node_id using bfs
+    const queue: Node[] = []; // Queue to store nodes for BFS traversal
+    const visited: Node[] = []; // Array to track visited nodes
 
-  addRelationship(sourceId: string, targetId: string): void {
-    const source = this.graph.nodes.find(node => node.id === sourceId);
-    const target = this.graph.nodes.find(node => node.id === targetId);
-    if(source && target) {
-      this.graph.addEdge(source, target);
-    } else {
-      console.error('Source or target not found');
+    if (!root) {
+      return root;
     }
-  }
 
-  jumpToNode(id: string): void {
-    const node = this.graph.nodes.find(node => node.id === id);
-    if(node) {
-      this.current = node;
-    } else {
-      console.error('Node not found');
+    queue.push(root); // Enqueue the root node
+
+    while (queue.length > 0) {
+      const current = queue.shift()!; // Dequeue the current node
+      visited.push(current); // Mark the current node as visited
+
+      if (current.id === node_id) {
+        return current;
+      }
+
+      // Enqueue all children of the current node
+      for (const child of current.children) {
+        queue.push(child);
+      }
     }
-  }
 
-  displayGraph(): void {
-    console.log(this.graph);
+    return root;
   }
 
 }
+// implement the tree data structure here.
 export class Node {
   id!: string;
   data!: any;
-  date!: string;
   label!: string;
-
+  date!: string;
+  children: Node[] = [];
+  
   constructor(id: string, data: any, date: string, label: string) {
     this.id = id;
     this.data = data;
     this.date = date;
     this.label = label;
+    this.children = [];
   }
-}
-export class Edge {
-  source: Node;
-  target: Node;
 
-  constructor(source: Node, target: Node) {
-    this.source = source;
-    this.target = target;
+  addChild(child: Node): void {
+    this.children.push(child);
   }
 }
 
-export class Graph {
-  nodes: Node[];
-  edges: Edge[];
+export class Tree {
+  root!: Node
+  currentNode!: Node
 
-  constructor(nodes: Node[], edges: Edge[]) {
-    this.nodes = nodes;
-    this.edges = edges;
+  constructor(id: string, data: any, date: string, label: string) {
+    this.root = new Node(id, data, date, label);
+    this.currentNode = this.root;
   }
 
-  addVertex(id: string, data: any, date: string, label: string): Node {
-    const vertex = new Node(id, data, date, label);
-    this.nodes.push(vertex);
-    return vertex;
+  addNode(id: string, data: any, date: string, label: string): void {
+    const newNode = new Node(id, data, date, label);
+    this.currentNode.addChild(newNode);
+    this.currentNode = newNode;
   }
 
-  addEdge(source: Node, target: Node): Edge {
-    const edge = new Edge(source, target);
-    this.edges.push(edge);
-    return edge;
-  }
+  countNodes(root: Node): number {
+    if(!root) {
+      return 0;
+    }
+    let count = 1;
+    for(let child of root.children) {
+      count += this.countNodes(child)
+    }
+
+    return count;
+  }  
 }

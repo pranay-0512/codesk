@@ -20,6 +20,7 @@ import { ToolSelectedEvent } from '../work-bench.component';
 export class CanvasComponent implements OnInit, OnChanges {
   @Input() clearCanvasMessage!: any;
   @Input() selectedTool: CoCanvasTool = tools[0];
+  @Input() canvasShapesAfterVersionControl!: any;
   @Output() shapePropertiesChange = new EventEmitter<any>();
   @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public fabricCanvas!: fabric.Canvas;
@@ -35,15 +36,15 @@ export class CanvasComponent implements OnInit, OnChanges {
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'dark', 
-    currentFillStyle: 'rgba(45, 45, 45, 0.05)',
+    currentFillStyle: '#f1f1f1',
     currentFontFamily: 0,
     currentFontSize: 48,
     currentOpacity: 1,
     currentRoughness: 1,
-    currentStrokeColor: 'black',
+    currentStrokeColor: '#1d1d1d',
     currentRoundness: 20,
     currentStrokeStyle: 'solid',
-    currentStrokeWidth: 3,
+    currentStrokeWidth: 4,
     currentTextAlign: 'left',
     editingGroupId: null,
     activeTool: {
@@ -66,9 +67,9 @@ export class CanvasComponent implements OnInit, OnChanges {
     },
     shadow: {
       blur: 1,
-      offsetX: 4,
-      offsetY: 4,
-      color: 'aqua',
+      offsetX: 2,
+      offsetY: 2,
+      color: '#db7807',
     },
     font_family: 'comic sans ms',
     fonts: ['Sevillana', 'Combo', 'Gaegu'],
@@ -141,12 +142,12 @@ export class CanvasComponent implements OnInit, OnChanges {
   customSelectionBorder(): void {
     fabric.Object.prototype.set({
       transparentCorners: false,
-      cornerColor: '#F4DF4EFF',
-      cornerStrokeColor: '#949398FF',
+      cornerColor: '#db7807',
+      cornerStrokeColor: '#1d1d1d',
       cornerStyle: 'circle',
       cornerSize: 8,
       padding: 10,
-      borderColor: '#949398FF',
+      borderColor: '#1d1d1d',
       borderDashArray: [20, 20],
       centeredScaling: false,
     });
@@ -315,7 +316,7 @@ export class CanvasComponent implements OnInit, OnChanges {
           if (e.target) {
             const target = e.target as fabric.Object;
             target.sendToBack();
-            this.fabricCanvas.renderAll();
+            this.fabricCanvas.requestRenderAll();
           }
         })
         this.fabricCanvas.on('mouse:down', (e: any) => {
@@ -473,13 +474,14 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.defaultCursor = 'crosshair';
         this.fabricCanvas.hoverCursor = 'crosshair';
         this.fabricCanvas.isDrawingMode = true;
-        this.fabricCanvas.freeDrawingBrush.width = this.canvas_state.currentStrokeWidth;
+        this.fabricCanvas.freeDrawingBrush.width = 5;
         this.fabricCanvas.freeDrawingBrush.color = this.canvas_state.currentStrokeColor;
         this.fabricCanvas.freeDrawingBrush.strokeLineCap = 'round';
         this.fabricCanvas.freeDrawingBrush.strokeLineJoin = 'round';
         this.fabricCanvas.freeDrawingBrush.shadow = new fabric.Shadow(this.canvas_state.shadow);
         this.fabricCanvas.on('mouse:down', (e: any)=> {
           this.fabricCanvas.setCursor('crosshair');
+          this.mouseDown = true;
         })
         this.fabricCanvas.on('path:created', (e: any) => {
           const path = e.path;
@@ -678,6 +680,11 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.renderAll();
         localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
       }
+    }
+    if(changes['cocanvasShapesAfterVersionControl']) {
+      this.fabricCanvas.loadFromJSON(this.canvasShapesAfterVersionControl, () => {
+        this.fabricCanvas.renderAll();
+      });
     }
   }
   ngOnDestroy(): void {

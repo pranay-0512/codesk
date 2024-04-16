@@ -1,80 +1,138 @@
-import { Component, ElementRef, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import { Edge, Graph, Node } from 'src/app/_services/version-control/version-control.service';
+import { Node, Tree, VersionControlService } from 'src/app/_services/version-control/version-control.service';
+import { environment } from 'src/environments/environment';
+import * as CryptoJS from 'crypto-js';
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit {
-  @ViewChild('graphContainer') graphContainer: ElementRef | undefined;
-  @Input() nodeData!: Node[]
-  @Input() edgeData!: Edge[]
-  constructor() { }
-  ngOnInit(): void {
-    
+  @ViewChild('graphSvg', {static: true}) graphContainer: ElementRef | undefined;
+  @Input() encryptedTreeData!: string;
+  @Output() emitCurrentNodeId = new EventEmitter<string>();
+
+  public isCollapsed = false;
+  constructor(private snapshotService: VersionControlService ) {
+    window.addEventListener('storage', (event) => {
+      console.log(event)
+      // localStorage.setItem('cocanvas_shapes', event.newValue!);
+    })
   }
-  renderGraph(): void {
-    if (this.graphContainer) {
-        const svg = d3.select(this.graphContainer.nativeElement)
-            .append('svg')
-            .attr('width', 800)
-            .attr('height', 600); // Adjust dimensions as needed
-
-        // Calculate positions for nodes and edges
-        const nodeCount = this.nodeData.length;
-        const edgeCount = this.edgeData.length;
-        const radius = 20; // Radius of the circle
-        const lineLength = 100; // Length of the edges
-
-        // Render edges
-        svg.selectAll("line")
-            .data(this.edgeData)
-            .enter()
-            .append("line")
-            .attr("x1", (d: Edge, i: number) => {
-                const angle = (360 / edgeCount) * i;
-                return 400 + (radius * Math.cos(angle * (Math.PI / 180)));
-            })
-            .attr("y1", (d: any, i: number) => {
-                const angle = (360 / edgeCount) * i;
-                return 300 + (radius * Math.sin(angle * (Math.PI / 180)));
-            })
-            .attr("x2", (d: any, i: number) => {
-                const angle = (360 / edgeCount) * i;
-                return 400 + ((radius + lineLength) * Math.cos(angle * (Math.PI / 180)));
-            })
-            .attr("y2", (d: any, i: number) => {
-                const angle = (360 / edgeCount) * i;
-                return 300 + ((radius + lineLength) * Math.sin(angle * (Math.PI / 180)));
-            })
-            .style("stroke", "black"); // Adjust stroke color and other attributes as needed
-
-        // Render nodes
-        svg.selectAll("circle")
-            .data(this.nodeData)
-            .enter()
-            .append("circle")
-            .attr("cx", (d: Node, i: number) => {
-                const angle = (360 / nodeCount) * i;
-                return 400 + (radius * Math.cos(angle * (Math.PI / 180)));
-            })
-            .attr("cy", (d: any, i: number) => {
-                const angle = (360 / nodeCount) * i;
-                return 300 + (radius * Math.sin(angle * (Math.PI / 180)));
-            })
-            .attr("r", 10) // Adjust radius as needed
-            .style("fill", "black") // Adjust fill color and other attributes as needed
-            .style("cursor", "pointer") // Change cursor to pointer when hovered
-            .on("click", (event: any, d: Node) => {
-                // Handle node click event here, `d` represents the data bound to the clicked node
-                console.log("Node clicked:", d);
-            });
+  ngOnInit(): void {
+  }
+  toggleCollapse(): void {
+    this.isCollapsed = !this.isCollapsed;
+    if(this.isCollapsed) {
+      const mapContainer = document.getElementById('map-container');
+      const arrow = document.getElementById('arrow');
+      if (mapContainer && arrow) {
+        mapContainer.style.width = '30%';
+        arrow.style.right = '30%';
+        // arrow.style.transform = 'rotate(180deg)';
+      }
     }
-}
+    else {
+      const mapContainer = document.getElementById('map-container');
+      const arrow = document.getElementById('arrow');
+      if (mapContainer && arrow) {
+        mapContainer.style.width = '0px';
+        arrow.style.right = '0%';
+        // arrow.style.transform = 'rotate(0deg)';
+      }
+    
+    }
+  }
+  renderTree(tree: Node): void {
+    // remove the existing svg
+    d3.select(this.graphContainer?.nativeElement).selectAll('svg').remove();
+    const width = document.body.clientWidth * 0.3;
+    const height = document.body.clientHeight * 0.6;
+    const svg = d3.select(this.graphContainer?.nativeElement)
+                  .append('svg')
+                  .attr('width', width)
+                  .attr('height', height+10)
+                  .attr('margin-right', '10px');
+    const treeLayout = d3.tree<Node>()
+                        .size([width, height-50]);
+    const rootNode = d3.hierarchy(tree);
+    const treeNodes = treeLayout(rootNode);
 
+    // Render nodes as circles
+    const nodes = svg.selectAll('.node')
+      .data(treeNodes.descendants())
+        .enter()
+        .append('g')
+        .attr('class', 'node')
+        .attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+
+    nodes.append('circle')
+        .attr('r', 15)
+        .style('fill', 'black')
+        .style('stroke', 'white') // Add stroke for better visibility
+        .style('stroke-width', 2) // Increase stroke width for better visibility
+        .style('cursor', 'pointer')
+        .style('fill', (d: any) => d.data.id === this.snapshotService.versionTree.currentNode?.id ? 'red' : 'black')
+        .on('click', (event, d) => {
+          this.emitCurrentNodeId.emit(d.data.id);
+          d3.select(event.target)
+            .transition()
+            .duration(500)
+            .style('fill', 'red');
+          this.renderCanvas(d.data);
+        })
+        .append('title')
+        .text((d: any) => d.data.label);
+    
+    // Render labels for each node on the side
+    nodes.append('text')
+        .attr('dy', 5)
+        .attr('x', 20) // Adjust the distance from the node
+        .attr('text-anchor', 'start')
+        .attr('font-size', '12px')
+        .style('fill', 'white')
+        .style('user-select', 'none')
+        .style('pointer-events', 'none')
+        .style('cursor', 'pointer')
+        .text((d: any) => d.data.label);
+
+    // Render links as lines
+    svg.selectAll('.link')
+      .data(treeNodes.links())
+        .enter()
+        .append('line')
+        .attr('class', 'link')
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x)
+        .attr('y2', (d: any) => d.target.y)
+        .style('stroke', 'black')
+        .style('stroke-width', 2); // Increase stroke width for better visibility
+  }
+  renderCanvas(data: any): void {
+    if(data.data == null) {return;}
+    const cocanvas_shapes = JSON.parse(data.data);
+    console.log(cocanvas_shapes)
+    localStorage.setItem('cocanvas_shapes', JSON.stringify(cocanvas_shapes));
+  }
+  decryptTreeData(encryptedData: string, key: string): any {
+    try {
+      const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, key);
+      const decryptedObject = JSON.parse(decryptedBytes.toString(CryptoJS.enc.Utf8));
+      return decryptedObject;
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return null; // or handle the error in a different way
+    }
+  }
   ngOnChanges(changes: SimpleChanges): void {
-    // every time the input changes, re-render the graph
-    this.renderGraph();
+    if(!changes['encryptedTreeData'].firstChange){
+      if(changes['encryptedTreeData'].currentValue){
+        const decryptedData: Tree = this.decryptTreeData(changes['encryptedTreeData'].currentValue, environment.crypto_secretkey);
+        console.log(decryptedData)
+        this.renderTree(decryptedData.root);
+      }
+    }
   }
 }

@@ -25,7 +25,12 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*.svg",
+                "input": "src/assets/svg",
+                "output": "./svg/"
+              }
             ],
             "styles": [
               "src/styles.scss",
@@ -95,9 +100,20 @@
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
+            "fileReplacements": [
+              {
+                "replace": "src/assets",
+                "with": "src/assets/svg/tools_icon_svg"
+              }
+            ],
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*.svg",
+                "input": "src/assets/svg",
+                "output": "/assets/svg/"
+              }
             ],
             "styles": [
               "src/styles.scss"

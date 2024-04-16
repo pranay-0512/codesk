@@ -1,12 +1,3 @@
-<app-button 
-    topPos="10px" 
-    rightPos="320px" 
-    width="70px" 
-    textColor="black" 
-    bgColor="rgba(22, 220, 220, 1)" 
-    height="40px" 
-    buttonText="Snapshot"
-    (clickHandler)="takeSnapshot()"
-    borderRadius="20px"
-    border="1px solid black">
-</app-button>
+<div class="overlay" (click)="takeSnapshot()">
+    <img src="{{camera.icon}}" alt="" width="48px">
+</div>
