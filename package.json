@@ -10,7 +10,7 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^14.2.0",
+    "@angular/animations": "^14.3.0",
     "@angular/cdk": "^13.0.0",
     "@angular/common": "^14.2.0",
     "@angular/compiler": "^14.2.0",
@@ -33,6 +33,7 @@
     "fontfaceobserver": "^2.3.0",
     "jquery": "^3.7.1",
     "material-icons": "^1.13.12",
+    "ngx-toastr": "^14.0.0",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "uuid": "^9.0.1",

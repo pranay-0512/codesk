@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  crypto_secretkey : "035daa5f-fed1-47ef-a9ac-e5a9f07c7855"
+  crypto_secretkey : "035daa5f-fed1-47ef-a9ac-fdf-fgdfgdb-8y4hf-43564fs-9f07c7855"
 };
 
 /*

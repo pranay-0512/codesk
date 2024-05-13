@@ -3,6 +3,7 @@ import { fabric } from 'fabric';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
+import { PalleteService } from 'src/app/_services/pallete/pallete.service';
 
 @Component({
   selector: 'app-pallete',
@@ -11,6 +12,7 @@ import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-to
 })
 export class PalleteComponent implements OnInit {
   @Input() selectedTool: CoCanvasTool = tools[0];
+  public isCollapsed: boolean = true;
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'dark', 
@@ -43,12 +45,6 @@ export class PalleteComponent implements OnInit {
         elementId: ''
       }
     },
-    shadow: {
-      blur: 1,
-      offsetX: 4,
-      offsetY: 4,
-      color: 'green',
-    },
     font_family: 'comic sans ms',
     fonts: ['Sevillana', 'Combo', 'Gaegu'],
     viewBackgroundColor: 'black',
@@ -80,7 +76,8 @@ export class PalleteComponent implements OnInit {
   public shadowColor: string = this.canvas_state.shadow?.color || '#000000';
   public fabricCanvas: fabric.Canvas = new fabric.Canvas('co_canvas');
   private propertyChangeSubject = new Subject<any>();
-  constructor() { 
+  predefinedColors: string[] = ['#C8D96F', '#C6D8FF', '#FCF5C7', '#E6CCBE', '#F8F7FF']; // Predefined colors
+  constructor(private palleteService: PalleteService) { 
     this.propertyChangeSubject.pipe(debounceTime(50000), distinctUntilChanged()).subscribe((value) => {
       this.propertyChange.emit(value);
     });
@@ -98,6 +95,14 @@ export class PalleteComponent implements OnInit {
       offsetY: this.offsetY,
       shadowColor: this.shadowColor
     });
+  }
+  toggleCollapse(): void {
+    if(this.palleteService.isCollapsed) {
+      this.palleteService.togglePalleteOpen();
+    }
+    else {
+      this.palleteService.togglePalleteClose();
+    }
   }
   ngOnChanges(changes: SimpleChanges) {
     if(changes['selectedTool']) {

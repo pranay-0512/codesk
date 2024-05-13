@@ -1,38 +1,45 @@
-<div class="overlay" *ngIf="isToolSelected">
-  <div class="color-palette" id="palette">
-    <div>
-      <label for="fillColor">background color</label>
-      <input type="color" [(ngModel)]="backgroundColor" (ngModelChange)="emitChangeEvent()">
-    </div>
-    <div>
-      <label for="strokeWidth">stroke width</label>
-      <input type="range" min="1" max="7" step="0.01" [(ngModel)]="strokeWidth" (ngModelChange)="emitChangeEvent()">
-    </div>
-    <div>
-      <label for="strokeColor">stroke color</label>
-      <input type="color" [(ngModel)]="strokeColor" (ngModelChange)="emitChangeEvent()">
-    </div>
-    <!-- <div>
-      <label for="strokeStyle">stroke style</label>
-      <select [(ngModel)]="strokeStyle" (ngModelChange)="emitChangeEvent()">
-        <option value="solid">Solid</option>
-        <option value="dashed">Dashed</option>
-        <option value="dotted">Dotted</option>
-      </select>
-    </div> -->
-    <div>
-      <label for="opacity">opacity</label>
-      <input type="range" min="0" max="1" step="0.01" [(ngModel)]="opacity" (ngModelChange)="emitChangeEvent()">
-    </div>
-    <div class="shadow-options">
-      <label>Blur:</label>
-      <input type="range" min="0" max="7" step="0.05" [(ngModel)]="blur" (ngModelChange)="emitChangeEvent()">
-      <label>Offset X:</label>
-      <input type="range" min="-7" max="7" step="0.05" [(ngModel)]="offsetX" (ngModelChange)="emitChangeEvent()">
-      <label>Offset Y:</label>
-      <input type="range" min="-7" max="7" step="0.05" [(ngModel)]="offsetY" (ngModelChange)="emitChangeEvent()">
-      <label>Color:</label>
-      <input type="color" [(ngModel)]="shadowColor" (ngModelChange)="emitChangeEvent()">
-    </div>
+<div>
+  <div class="arrow" id="arrow-left" (click)="toggleCollapse()" [ngClass]="!isCollapsed ? 'opaque' : ''">
+      <img src="https://svgshare.com/i/15Rh.svg" alt="">
+  </div>
+  <div class="palette-container" id="palette-container" [ngClass]="isCollapsed ? 'collapsed' : '' ">
+      <div class="overlay" *ngIf="isToolSelected">
+        <div class="color-palette" id="palette">
+          <div class="property">
+            <div class="property-title">
+              <label for="fillColor">Background color</label>
+            </div>
+            <div class="predefined-colors">
+              <div class="color-circle" *ngFor="let color of predefinedColors" [style.background-color]="color" (click)="backgroundColor = color; emitChangeEvent()" (ngModelChange)="emitChangeEvent()">
+              </div>
+            </div>
+          </div>
+          <div class="property">
+            <div class="property-title">
+              <label for="fillColor">Border color</label>
+            </div>
+            <div class="predefined-colors">
+              <div class="color-circle" *ngFor="let color of predefinedColors" [style.background-color]="color" (click)="strokeColor = color; emitChangeEvent()" (ngModelChange)="emitChangeEvent()">
+              </div>
+            </div>
+          </div>
+          <div class="property">
+            <div class="property-title">
+              <label for="strokeWidth">Stroke width</label>
+            </div>
+            <div class="custom-slider">
+              <input class="slider" type="range" min="1" max="10" step="0.01" [(ngModel)]="strokeWidth" (ngModelChange)="emitChangeEvent()">
+            </div>
+          </div>
+          <div class="property">
+            <div class="property-title">
+              <label for="opacity">Opacity</label>
+            </div>
+            <div class="custom-slider">
+              <input class="slider" type="range" min="0" max="1" step="0.01" [(ngModel)]="opacity" (ngModelChange)="emitChangeEvent()">
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </div>

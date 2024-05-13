@@ -35,8 +35,6 @@ import { VersionControlComponent } from './overlay-components/version-control/ve
     MatIconModule,
     RouterModule.forChild([
       { path: ':id', component: WorkBenchComponent },
-      { path: '', redirectTo: '/', pathMatch: 'full' },
-      { path: '**', redirectTo: '/', pathMatch: 'full'}
     ])
   ]
 })

@@ -1,38 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Combo&display=swap');
+
+.palette-container {
+  position: absolute;
+  transition: 0.2s;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  background-color: #db780764;
+  width: 0%;
+  height: 30%;
+  border-radius: 20px;
+  z-index: 1000;
+  overflow: hidden;
+}
+.arrow {
+  transition: left 0.2s;
+  position: absolute; 
+  left: 0%;
+  z-index: 1001;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  &:hover {
+    opacity: .9;
+  }
+}
 .overlay {
-    display: inline;
-    position: absolute;
-    top: calc(50vh - 10vh);
-    left: calc(0.5vw);
-    z-index: 1000;
-    user-select: none;
-    background: pink;
-    border-radius: 10px;
-    border: 0px;
-    .material-symbols-outlined {
-        font-variation-settings:
-        'FILL' 0,
-        'wght' 100,
-        'GRAD' 200,
-        'opsz' 40
-      }
-      .color-palette {
-        display: flex;
-        width: 300px;
-        height: 250px;
-        flex-direction: column;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-      }
-      
-      .color-palette input,
-      .color-palette select {
+  display: inline;
+  position: absolute;
+  cursor: pointer;
+  height: 100%;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  padding: 2px;
+  transform: translate(0, -50%);
+  z-index: 1000;
+  user-select: none;
+  border: 2px solid #db780738;
+  background-color: #db78072e;
+  border-radius: 20px;
+  .color-palette {
+    height: 100%;
+    width: 100%;
+    .property {
+      margin-left: 5px;
+      margin-right: 5px;
+      height: 25%;
+      .property-title {
+        font-family: "Gaegu", system-ui;
+        font-size: 18px;
+        text-align: left;
+        padding-top: 5px;
         margin-bottom: 5px;
       }
-      
-      .shadow-options {
-        margin-top: 10px;
+      .predefined-colors {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
       }
       
+      .color-circle {
+        border-radius: 30%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+      }
+      .custom-slider {
+        width: 100%;
+      }
+      
+      .slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        border-radius: 5px;
+        background: #1d1d1d;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+      }
+      
+      .slider:hover {
+        opacity: 1;
+      }
+      
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #db7807;
+        cursor: pointer;
+      }
+      
+      .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #db7807;
+        cursor: pointer;
+      }
+      
+    }
+  }
 }
 

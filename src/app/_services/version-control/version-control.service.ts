@@ -17,7 +17,6 @@ export class VersionControlService {
 
 
   public versionTree!: Tree;
-  public currentNode!: Node;
   constructor() {
     this.versionTree = new Tree(uuidv4(), null, new Date().toString(), 'root');
   }
@@ -25,7 +24,6 @@ export class VersionControlService {
     // take a snapshot of the current state of the canvas
     const node = new Node(id, canvasData, date, label);
     this.versionTree.addNode(node.id, node.data, node.date, node.label);
-    this.currentNode = node;
   }
   findNode(root: Node, node_id: string): Node {
     // return the node with the given node_id using bfs
@@ -74,6 +72,10 @@ export class Node {
 
   addChild(child: Node): void {
     this.children.push(child);
+  }
+
+  count(): number {
+    return this.children.length;
   }
 }
 

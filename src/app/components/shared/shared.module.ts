@@ -4,10 +4,12 @@ import { SideMenuComponent } from './side-menu/side-menu.component';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonComponent } from './button/button.component';
+import { LoaderComponent } from './loader/loader/loader.component';
 
 const exportedComponents = [
   SideMenuComponent,
-  ButtonComponent
+  ButtonComponent,
+  LoaderComponent
 ];
 
 @NgModule({

@@ -41,12 +41,6 @@ export class LineService {
     selectedElementIds: {
       selectedElementIds: []
     },
-    shadow: {
-      blur: 0,
-      offsetX: 5,
-      offsetY: 3,
-      color: 'black'
-    },
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
@@ -93,7 +87,7 @@ export class LineService {
         strokeLineCap: 'round',
         strokeLineJoin: 'round',
         data: this.uuid,
-        selectable: false,
+        selectable: true,
         objectCaching: false,
         lockMovementX: true,
         lockMovementY: true,
@@ -133,17 +127,21 @@ export class LineService {
       data: this.uuid,
       selectable: true,
       objectCaching: false,
-      lockMovementX: true,
-      lockMovementY: true,
+      lockMovementX: false,
+      lockMovementY: false,
       opacity: this.canvas_state.currentOpacity
     });
-    renderLine.selectable = false;
+    renderLine.selectable = true;
     this.fabricCanvas.remove(line);
     this.fabricCanvas.add(renderLine);
     this.fabricCanvas.setActiveObject(renderLine);
-    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+    this.setLocalStorage(this.fabricCanvas);
     this.mouseDown = false;
     this.mouseMoving = false;
     this.fabricCanvas.requestRenderAll();
+  }
+  setLocalStorage(data: fabric.Canvas): void {
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem('cocanvas_shapes', serializedData);
   }
 }
