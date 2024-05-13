@@ -1,3 +1,6 @@
+<div class="overlay" (click)="takeSnapshot()">
+    <img src="{{camera.icon}}" alt="" width="48px">
+</div>
 <div>
     <div class="arrow" id="arrow" (click)="toggleCollapse()" [ngClass]="!isCollapsed ? 'opaque' : ''">
         <img src="https://svgshare.com/i/15Rh.svg" alt="">

@@ -29,6 +29,9 @@ export class SnapshotComponent implements OnInit {
     this.tree = this.snapshotService.versionTree;
   }
   ngOnInit(): void {
+    this.tree = localStorage.getItem('cocanvas_version') ? JSON.parse(localStorage.getItem('cocanvas_version') || '{}') : new Tree(uuvidv4(), null, new Date().toString(), 'root');
+    console.log(this.tree)
+    localStorage.setItem('cocanvas_version', JSON.stringify(this.tree));
   }
   takeSnapshot(): void {
     this.canvasData = localStorage.getItem('cocanvas_shapes');
@@ -55,10 +58,12 @@ export class SnapshotComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if(!changes['currNodeId'].firstChange){
-      const current_node = this.findCurrNode(this.currNodeId);
+      const current_node: Node = this.findCurrNode(changes['currNodeId'].currentValue);
       this.tree.currentNode = current_node;
+      console.log(this.tree)
       const ed = this.encryptTreeData(this.tree, environment.crypto_secretkey);
       this.emitTreeData.emit(ed);
+      changes['currNodeId'].previousValue = uuvidv4();
     }
   }
 }

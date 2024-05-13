@@ -64,9 +64,6 @@ export const MenuList: Array<MenuItem> = [
         icon_invert: 'https://svgshare.com/i/15S4.svg',
         link: 'reset-canvas',
         onClick: () => {
-            localStorage.removeItem('cocanvas_shapes');
-            localStorage.removeItem('cocanvas_state');
-            window.location.reload();
         }
     }
 ]

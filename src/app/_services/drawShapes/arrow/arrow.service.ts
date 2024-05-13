@@ -41,12 +41,6 @@ export class ArrowService {
     selectedElementIds: {
       selectedElementIds: []
     },
-    shadow: {
-      blur: 0,
-      offsetX: 5,
-      offsetY: 3,
-      color: 'black'
-    },
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
@@ -158,8 +152,8 @@ export class ArrowService {
       strokeLineJoin: 'round',
       selectable: true,
       objectCaching: false,
-      lockMovementX: true,
-      lockMovementY: true,
+      lockMovementX: false,
+      lockMovementY: false,
       opacity: this.canvas_state.currentOpacity
     });
     let group = new fabric.Group([renderLine, arrowHead1], {
@@ -167,13 +161,17 @@ export class ArrowService {
       data: {uuid: this.uuid, type: 'arrowGroup'},
       objectCaching: false
     });
-    group.selectable = false;
+    group.selectable = true;
     this.fabricCanvas.remove(line,arrowHead1);
     this.fabricCanvas.add(group);
     this.fabricCanvas.setActiveObject(group);
-    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+    this.setLocalStorage(this.fabricCanvas);
     this.mouseDown = false;
     this.mouseMoving = false;
     this.fabricCanvas.requestRenderAll();
+  }
+  setLocalStorage(data: fabric.Canvas): void {
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem('cocanvas_shapes', serializedData);
   }
 }

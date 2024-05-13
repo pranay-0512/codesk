@@ -41,12 +41,6 @@ export class EllipseService {
     selectedElementIds: {
       selectedElementIds: []
     },
-    shadow: {
-      blur: 0,
-      offsetX: 5,
-      offsetY: 3,
-      color: 'black'
-    },
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
@@ -95,7 +89,6 @@ export class EllipseService {
         selectable: true,
         opacity: 0.5,
         data: this.uuid,
-        shadow: new fabric.Shadow(this.canvas_state.shadow),
         lockMovementX: true,
         lockMovementY: true,
       });
@@ -130,9 +123,13 @@ export class EllipseService {
       opacity: this.canvas_state.currentOpacity,
     })
     this.fabricCanvas.setActiveObject(ellipse);
-    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+    this.setLocalStorage(this.fabricCanvas);
     this.mouseDown = false;
     this.mouseMoving = false;
     this.fabricCanvas.renderAll();
+  }
+  setLocalStorage(data: fabric.Canvas): void {
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem('cocanvas_shapes', serializedData);
   }
 }

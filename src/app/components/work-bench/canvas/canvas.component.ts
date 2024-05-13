@@ -1,5 +1,4 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { CoCanvasShape } from 'src/app/_models/work-bench/canvas/canvas-shape.model';
 import { CoCanvasState } from 'src/app/_models/work-bench/canvas/canvas-state.model';
 import { CoCanvasTool, tools } from 'src/app/_models/work-bench/canvas/canvas-tool.model';
 import { WebsocketShapeService } from 'src/app/_services/websocket/websocket-shape.service';
@@ -12,6 +11,8 @@ import { FreeDrawService } from 'src/app/_services/drawShapes/free-draw/free-dra
 import { v4 as uuidv4 } from 'uuid';
 import * as FontFaceObserver from 'fontfaceobserver';
 import { ToolSelectedEvent } from '../work-bench.component';
+import { Subscription } from 'rxjs';
+import { PalleteService } from 'src/app/_services/pallete/pallete.service';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -20,7 +21,6 @@ import { ToolSelectedEvent } from '../work-bench.component';
 export class CanvasComponent implements OnInit, OnChanges {
   @Input() clearCanvasMessage!: any;
   @Input() selectedTool: CoCanvasTool = tools[0];
-  @Input() canvasShapesAfterVersionControl!: any;
   @Output() shapePropertiesChange = new EventEmitter<any>();
   @Output() toolSelected = new EventEmitter<ToolSelectedEvent>();
   public fabricCanvas!: fabric.Canvas;
@@ -36,7 +36,7 @@ export class CanvasComponent implements OnInit, OnChanges {
   public canvas_state: CoCanvasState = {
     showWelcomeScreen: false,
     theme: 'dark', 
-    currentFillStyle: '#f1f1f1',
+    currentFillStyle: '',
     currentFontFamily: 0,
     currentFontSize: 48,
     currentOpacity: 1,
@@ -65,12 +65,6 @@ export class CanvasComponent implements OnInit, OnChanges {
         elementId: ''
       }
     },
-    shadow: {
-      blur: 1,
-      offsetX: 2,
-      offsetY: 2,
-      color: '#db7807',
-    },
     font_family: 'comic sans ms',
     fonts: ['Sevillana', 'Combo', 'Gaegu'],
     viewBackgroundColor: 'black',
@@ -90,14 +84,12 @@ export class CanvasComponent implements OnInit, OnChanges {
     offsetY: this.canvas_state.shadow?.offsetY,
     shadowColor: this.canvas_state.shadow?.color
   };
+  public storageSubscription!: Subscription;
   public theme: string = this.canvas_state.theme === 'light' ? 'rgb(255,255,0)' : 'rgba(0,0,0,1)';
-  constructor(public shapeService: WebsocketShapeService, public drawLine: LineService, public drawRectangle: RectangleService, public drawEllipse: EllipseService, public drawArrow: ArrowService, public drawFree: FreeDrawService) {
+  constructor(public shapeService: WebsocketShapeService, public drawLine: LineService, public drawRectangle: RectangleService, public drawEllipse: EllipseService, public drawArrow: ArrowService, public drawFree: FreeDrawService, private palleteService: PalleteService) { 
     const body = document.querySelector('body');
     body?.setAttribute('style', 'overflow: hidden');
     window.addEventListener('storage', (event) => {
-      if (event.key === 'cocanvas_shapes') {
-        this.canvas_shapes = this.getFromLocalStorage();
-      }
       if (event.key === 'cocanvas_state') {
         this.canvas_state = JSON.parse(event.newValue ?? '{}');
       }
@@ -105,6 +97,30 @@ export class CanvasComponent implements OnInit, OnChanges {
   }
   ngOnInit(): void {
     this.initCanvas();
+    let shapes = this.getLocalStorage('cocanvas_shapes');
+    this.fabricCanvas.loadFromJSON(shapes, () => {
+      this.fabricCanvas.renderAll();
+    })
+    // this.storageSubscription = this.localStorageService.storage$.subscribe((data) => {
+    //   shapes = data;
+    //   if(data === null) {this.fabricCanvas.clear(); return;}
+    //   this.fabricCanvas.loadFromJSON(shapes, () => {
+    //     this.fabricCanvas.renderAll();
+    //   })
+    // })
+  }
+  setLocalStorage(data: any): void {
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem('cocanvas_shapes', serializedData)
+  }
+  getLocalStorage(key: string): any {
+    const serializedData = localStorage.getItem(key);
+    if (serializedData !== null) {
+      const parsedData = JSON.parse(serializedData);
+      // console.log(parsedData)
+      return parsedData;
+    }
+    return null;
   }
   initCanvas(): void {
     this.fabricCanvas = new fabric.Canvas('co_canvas', {
@@ -112,7 +128,8 @@ export class CanvasComponent implements OnInit, OnChanges {
       height: screen.height,
       selection: false,
       defaultCursor: 'default',
-      hoverCursor: 'default'
+      hoverCursor: 'default',
+      uniformScaling: false,
     });
     this.secondaryCursor = new fabric.Text('+', {
       fontFamily: 'Arial',
@@ -124,20 +141,12 @@ export class CanvasComponent implements OnInit, OnChanges {
       evented: false,
     });
     this.setCanvas();
-    this.getFromLocalStorage();
     this.addCustomFonts();
     this.addMouseEvents(this.selectedTool);
     this.customSelectionBorder(); 
     this.addZoomEvent();
     this.addKeyEvents();
     this.addCustomControlPoints();
-  }
-  getFromLocalStorage(): any {
-    const shapes = JSON.parse(localStorage.getItem('cocanvas_shapes') ?? '[]');
-    this.fabricCanvas.loadFromJSON(shapes, () => {
-      this.fabricCanvas.renderAll();
-    });
-    return shapes;
   }
   customSelectionBorder(): void {
     fabric.Object.prototype.set({
@@ -214,9 +223,11 @@ export class CanvasComponent implements OnInit, OnChanges {
     this.selectedTool = tools.find((tool) => tool.enum === this.canvas_state.activeTool.type) ?? tools[0];
   }
   addMouseEvents(tool: CoCanvasTool): void {
+    this.fabricCanvas.uniformScaling= false
     switch(tool.enum) {
       case 'TEXT':
         this.fabricCanvas.selection = false;
+        this.fabricCanvas.uniformScaling= true;
         this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.on('mouse:down', (e: any) => {
           this.isTyping = true;
@@ -266,7 +277,7 @@ export class CanvasComponent implements OnInit, OnChanges {
             };
             selectTool();
           });
-          localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+          this.setLocalStorage(this.fabricCanvas);
         });
         break;
       case 'PAN':
@@ -322,24 +333,11 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.on('mouse:down', (e: any) => {
           this.mouseDown = true;
           if (e.target) {
+            this.palleteService.togglePalleteOpen();
             this.fabricCanvas.setCursor('move');
             this.addCustomControlPoints();
             if(this.fabricCanvas.getActiveObjects().length > 1) {
               return;
-            }
-            if (e.target.type === 'group' && e.target instanceof fabric.Group) {
-              (e.target as fabric.Group).forEachObject((obj) => {
-                this.shapeProperties = {
-                  backgroundColor: obj.fill,
-                  strokeWidth: obj.strokeWidth,
-                  strokeColor: obj.stroke,
-                  opacity: obj.opacity,
-                  blur: (obj.shadow as fabric.Shadow)?.blur,
-                  offsetX: (obj.shadow as fabric.Shadow)?.offsetX,
-                  offsetY: (obj.shadow as fabric.Shadow)?.offsetY,
-                  shadowColor: (obj.shadow as fabric.Shadow)?.color
-                }
-              });
             }
             else {
               this.shapeProperties = {
@@ -347,13 +345,12 @@ export class CanvasComponent implements OnInit, OnChanges {
                 strokeWidth: e.target.strokeWidth,
                 strokeColor: e.target.stroke,
                 opacity: e.target.opacity,
-                blur: e.target.shadow?.blur,
-                offsetX: e.target.shadow?.offsetX,
-                offsetY: e.target.shadow?.offsetY,
-                shadowColor: e.target.shadow?.color
               }
             }
-            this.shapePropertiesChange.emit(this.shapeProperties);
+            // this.shapePropertiesChange.emit(this.shapeProperties);
+          }
+          else {
+            this.palleteService.togglePalleteClose();
           }
           if(e.e.buttons === 1) {
             // this.shapeService.sendMessage(e.pointer);
@@ -365,6 +362,12 @@ export class CanvasComponent implements OnInit, OnChanges {
           this.mouseMoving = true;
           if(e.target) {
             this.fabricCanvas.hoverCursor = 'move';
+          }
+          if(this.mouseDown) {
+            if(this.fabricCanvas.getActiveObject()) {
+              console.log(this.fabricCanvas.getActiveObject())
+              this.multipleSelection();
+            }
           }
           // this.shapeService.sendMessage(e.pointer);
         })
@@ -379,7 +382,7 @@ export class CanvasComponent implements OnInit, OnChanges {
         })
         this.fabricCanvas.on('object:modified', () => {
           // this.shapeService.sendMessage(this.fabricCanvas);
-          localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+          this.setLocalStorage(this.fabricCanvas);
         });
         break;
       case 'LINE':
@@ -393,10 +396,10 @@ export class CanvasComponent implements OnInit, OnChanges {
             this.selectedTool = tools[0];
             this.removeMouseEvents();
             this.addMouseEvents(this.selectedTool);
-            this.fabricCanvas.forEachObject((obj) => {
-              obj.lockMovementX = false;
-              obj.lockMovementY = false;
-            });
+            // this.fabricCanvas.forEachObject((obj) => {
+            //   obj.lockMovementX = false;
+            //   obj.lockMovementY = false;
+            // });
             this.canvas_state.activeTool.type = this.selectedTool.enum;
             localStorage.setItem('cocanvas_state', JSON.stringify(this.canvas_state));
           };
@@ -478,7 +481,6 @@ export class CanvasComponent implements OnInit, OnChanges {
         this.fabricCanvas.freeDrawingBrush.color = this.canvas_state.currentStrokeColor;
         this.fabricCanvas.freeDrawingBrush.strokeLineCap = 'round';
         this.fabricCanvas.freeDrawingBrush.strokeLineJoin = 'round';
-        this.fabricCanvas.freeDrawingBrush.shadow = new fabric.Shadow(this.canvas_state.shadow);
         this.fabricCanvas.on('mouse:down', (e: any)=> {
           this.fabricCanvas.setCursor('crosshair');
           this.mouseDown = true;
@@ -487,7 +489,7 @@ export class CanvasComponent implements OnInit, OnChanges {
           const path = e.path;
           path.set({data: uuidv4()});
           this.fabricCanvas.requestRenderAll();
-          localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+          this.setLocalStorage(this.fabricCanvas);
         });
         break;
     }
@@ -502,10 +504,12 @@ export class CanvasComponent implements OnInit, OnChanges {
     window.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.key === 'a') {
         e.preventDefault();
+        this.fabricCanvas.discardActiveObject().renderAll();
         this.fabricCanvas.setActiveObject(new fabric.ActiveSelection(this.fabricCanvas.getObjects(), {
           canvas: this.fabricCanvas,
         }));
-        this.fabricCanvas.requestRenderAll();
+        this.fabricCanvas.renderAll();
+        this.multipleSelection();
       }
     });
     // delete, copy, paste
@@ -513,7 +517,7 @@ export class CanvasComponent implements OnInit, OnChanges {
       if (e.key === 'Delete') {
         this.fabricCanvas.remove(...this.fabricCanvas.getActiveObjects());
         this.fabricCanvas.discardActiveObject().renderAll();
-        localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+        this.setLocalStorage(this.fabricCanvas);
       }
       else if (e.ctrlKey && e.key === 'c') {
         this.fabricCanvas.getActiveObject()?.clone((clonedObj: any) => {
@@ -540,7 +544,7 @@ export class CanvasComponent implements OnInit, OnChanges {
           }
           this.fabricCanvas.setActiveObject(clonedObj);
           this.fabricCanvas.requestRenderAll();
-          localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+          this.setLocalStorage(this.fabricCanvas);
         });
       }
     });
@@ -582,8 +586,6 @@ export class CanvasComponent implements OnInit, OnChanges {
       const prevTool = tools.find((tool)=> tool.enum === this.canvas_state.activeTool.lastActiveTool);
       if(prevTool) {
         prevTool.is_active = false;
-        console.log(prevTool.enum, prevTool.is_active, "prevTool")
-        console.log(this.selectedTool.enum, this.selectedTool.is_active, "selectedTool")
       }
       this.toolSelected.emit({ selectedTool: this.selectedTool })
       this.canvas_state.activeTool.type = this.selectedTool.enum;
@@ -592,33 +594,8 @@ export class CanvasComponent implements OnInit, OnChanges {
   }
   addCustomControlPoints(): void {
     if(this.fabricCanvas.getActiveObject()) {
-      if(this.fabricCanvas.getActiveObject() instanceof fabric.Group || this.fabricCanvas.getActiveObject()?.type === 'path' || this.fabricCanvas.getActiveObject()?.type==='group') {
-        const group = this.fabricCanvas.getActiveObject() as fabric.Group;
-        // group.hasBorders = false;
-        group.hasControls = false;
-        group.selectable = false;
-        // add custom control points
-        const midPointX = group.getCenterPoint().x;
-        const midPointY = group.getCenterPoint().y;
-        const curvePoint = new fabric.Circle({
-          left: midPointX,
-          top: midPointY,
-          radius: 10,
-          fill: 'red',
-          opacity: 0.5,
-          originX: 'center',
-          originY: 'center',
-          hasControls: false,
-          hasBorders: false,
-          selectable: false,
-          evented: false,
-        });
-        this.fabricCanvas.add(curvePoint);
-        this.fabricCanvas.renderAll();
-      }
       if(this.fabricCanvas.getActiveObject()?.type === 'i-text') {
         const text = this.fabricCanvas.getActiveObject() as fabric.Textbox;
-        // tl bl tr br false 
         text.setControlsVisibility({
           mt: false,
           mb: false,
@@ -626,6 +603,17 @@ export class CanvasComponent implements OnInit, OnChanges {
           mr: false,
         });
       }
+    }
+  }
+  multipleSelection(): void {
+    if(this.fabricCanvas.getActiveObjects().length > 1) {
+      this.palleteService.togglePalleteOpen();
+    }
+    else if (this.fabricCanvas.getActiveObjects().length === 1) {
+      this.palleteService.togglePalleteOpen();
+    }
+    else {
+      this.palleteService.togglePalleteClose();
     }
   }
   ngOnChanges(changes: SimpleChanges): void {
@@ -652,12 +640,6 @@ export class CanvasComponent implements OnInit, OnChanges {
                 stroke: this.shapeProperties.strokeColor,
                 strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
                 opacity: this.shapeProperties.opacity,
-                shadow: new fabric.Shadow({
-                  blur: this.shapeProperties.blur,
-                  offsetX: this.shapeProperties.offsetX,
-                  offsetY: this.shapeProperties.offsetY,
-                  color: this.shapeProperties.shadowColor
-                })
               });
             });
           }
@@ -668,23 +650,13 @@ export class CanvasComponent implements OnInit, OnChanges {
               stroke: this.shapeProperties.strokeColor,
               strokeDashArray: this.shapeProperties.strokeStyle === 'dashed' ? [10, 5] : [0, 0],
               opacity: this.shapeProperties.opacity,
-              shadow: new fabric.Shadow({
-                blur: this.shapeProperties.blur,
-                offsetX: this.shapeProperties.offsetX,
-                offsetY: this.shapeProperties.offsetY,
-                color: this.shapeProperties.shadowColor
-              })
+              
             });
           }
         });
         this.fabricCanvas.renderAll();
-        localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+        this.setLocalStorage(this.fabricCanvas);
       }
-    }
-    if(changes['cocanvasShapesAfterVersionControl']) {
-      this.fabricCanvas.loadFromJSON(this.canvasShapesAfterVersionControl, () => {
-        this.fabricCanvas.renderAll();
-      });
     }
   }
   ngOnDestroy(): void {

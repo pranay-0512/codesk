@@ -42,12 +42,6 @@ export class FreeDrawService {
     selectedElementIds: {
       selectedElementIds: []
     },
-    shadow: {
-      blur: 0,
-      offsetX: 5,
-      offsetY: 3,
-      color: 'black'
-    },
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
@@ -73,7 +67,10 @@ export class FreeDrawService {
       strokeLineJoin: 'round',
       evented: false,
       selectable: false,
-      shadow: new fabric.Shadow(this.canvas_state.shadow)
     });
+  }
+  setLocalStorage(data: fabric.Canvas): void {
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem('cocanvas_shapes', serializedData);
   }
 }

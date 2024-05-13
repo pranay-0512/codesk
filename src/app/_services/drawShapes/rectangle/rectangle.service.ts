@@ -43,12 +43,6 @@ export class RectangleService {
     selectedElementIds: {
       selectedElementIds: []
     },
-    shadow: {
-      blur: 0,
-      offsetX: 5,
-      offsetY: 3,
-      color: 'black'
-    },
     font_family: 'Arial',
     viewBackgroundColor: 'rgba(255,255,255,1)',
     zoom: {
@@ -98,7 +92,6 @@ export class RectangleService {
         selectable: true,
         opacity: 0.5,
         data: this.uuid,
-        shadow: new fabric.Shadow(this.canvas_state.shadow),
         rx: this.canvas_state.currentRoundness,
         ry: this.canvas_state.currentRoundness,
         lockMovementX: true,
@@ -137,9 +130,13 @@ export class RectangleService {
       opacity: this.canvas_state.currentOpacity,
     })
     this.fabricCanvas.setActiveObject(rect);
-    localStorage.setItem('cocanvas_shapes', JSON.stringify(this.fabricCanvas));
+    this.setLocalStorage(this.fabricCanvas);
     this.mouseDown = false;
     this.mouseMoving = false;
     this.fabricCanvas.renderAll();
+  }
+  setLocalStorage(data: fabric.Canvas): void {
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem('cocanvas_shapes', serializedData);
   }
 }

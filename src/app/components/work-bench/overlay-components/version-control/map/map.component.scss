@@ -15,16 +15,27 @@
   overflow: hidden;
   .title {
     user-select: none;
+    height: 10%;
     transition: 0.3s;
     font-size: 32px;
     text-align: center;
-    margin-top: 15px;
+    padding-top: 15px;
     font-family: "Gaegu", system-ui;
   }
   .map {
     width: 100%;
-    height: 100%;
+    height: 90%;
     transition: 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: all;
+    .svg-map {
+      width: 100%;
+      height: 100%;
+      transition: 0.3s;
+
+    }
   }
 }
 .arrow {
@@ -42,5 +53,23 @@
 .opaque {
   transition: 0.3s;
   opacity: .5;
+}
+.overlay {
+  transition: all 0.2s ease-in-out;
+  display: inline;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  user-select: none;
+  padding: 3px;
+  margin: 10px;
+  border: 2px solid #1d1d1d;
+  background-color: #1d1d1d;
+  border-radius: 10px;
+  &:hover {
+      scale: 0.9;
+  }
 }
 
