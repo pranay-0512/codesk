@@ -1,7 +1,8 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
+import * as d3 from 'd3';
 import { MenuItem, MenuList } from 'src/app/_models/work-bench/menu-item/menu-item.model';
 import { CreateWorkBenchResp, CreateWorkbenchReq } from 'src/app/_models/work-bench/workbench.model';
 import { LoaderService } from 'src/app/_services/loader/loader.service';
