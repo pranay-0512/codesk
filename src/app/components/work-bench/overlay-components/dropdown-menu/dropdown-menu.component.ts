@@ -88,7 +88,6 @@ export class DropdownMenuComponent implements OnInit {
           this.workbenchService.createWorkBench(req).subscribe({
             next: (response: CreateWorkBenchResp) => {
               workbenchId = response._id;
-              console.log(response._id);
               this.localStorageService.setItem('workbenchId', workbenchId);
             },
             error: (error) => {

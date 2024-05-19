@@ -372,7 +372,6 @@ export class CanvasComponent implements OnInit, OnChanges {
           }
           if(this.mouseDown) {
             if(this.fabricCanvas.getActiveObject()) {
-              console.log(this.fabricCanvas.getActiveObject())
               this.multipleSelection();
             }
           }
