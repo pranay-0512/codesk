@@ -196,7 +196,6 @@ export class MapComponent implements OnInit {
     }
     else {
       this.localStorageService.setItem('cocanvas_shapes', cocanvas_shapes);
-      console.log("local storage value changed") 
     }
   }
   fetchTree(): void {
@@ -205,17 +204,12 @@ export class MapComponent implements OnInit {
     this.loader.showLoader();
     this.workbenchService.getWorkBench(this.workbenchId).subscribe({
       next: (resp: any) => {
-        console.log(resp);
         if(!resp.data) {
-          console.log("creating new tree coz resp is null")
           this.tree = new Tree(uuvidv4(), null, new Date().toString(), 'Root');
-          console.log(this.tree)
           this.renderTree(this.tree.root);
         } else {
-          console.log("tree already exists")
           const tree = this.decryptTreeData(resp.data, environment.crypto_secretkey);
           this.tree = tree;
-          console.log(this.tree)
           this.renderTree(this.tree.root);
         }
       },
@@ -245,8 +239,6 @@ export class MapComponent implements OnInit {
     }
     this.workbenchService.updateWorkBench(this.workbenchId, reqData).subscribe({
       next: (resp: CreateWorkBenchResp) => {
-        console.log(this.decryptTreeData(resp.data, environment.crypto_secretkey));
-        console.log(this.tree);
       },
       error: (err: any) => {
         console.log(err);
