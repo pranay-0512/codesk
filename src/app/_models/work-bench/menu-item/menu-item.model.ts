@@ -9,6 +9,15 @@ export class MenuItem {
 }
 
 export const MenuList: Array<MenuItem> = [
+    {
+        enum: 'CREATE_NEW_CANVAS',
+        title: 'New canvas',
+        icon: 'https://svgshare.com/i/16Dn.svg',
+        icon_invert: 'https://svgshare.com/i/16Dn.svg',
+        link: 'create-new-canvas',
+        onClick: () => {
+        }
+    },
     {   
         enum: 'OPEN',
         title: 'Open',

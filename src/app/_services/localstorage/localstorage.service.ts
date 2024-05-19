@@ -1,25 +1,35 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocalstorageService {
-  private storageSubject = new BehaviorSubject<any>(null);
-  public storage$ = this.storageSubject.asObservable();
-  constructor() { }
+  private storageSubject = new Subject<{ key: string, value: any }>();
 
-  setItem(key: string, value: any): void {
+  storageChange$ = this.storageSubject.asObservable();
+
+  constructor() {
+    window.addEventListener('storage', this.onStorageEvent.bind(this));
+  }
+
+  setItem(key: string, value: any) {
     localStorage.setItem(key, value);
-    this.storageSubject.next(value);
+    this.storageSubject.next({ key, value });
   }
 
   getItem(key: string): any {
-    return localStorage.getItem(key)
+    return localStorage.getItem(key);
   }
 
-  removeItem(key: string): void {
+  removeItem(key: string) {
     localStorage.removeItem(key);
-    this.storageSubject.next(null);
+    this.storageSubject.next({ key, value: null });
+  }
+
+  private onStorageEvent(event: StorageEvent) {
+    if (event.storageArea === localStorage) {
+      this.storageSubject.next({ key: event.key!, value: event.newValue });
+    }
   }
 }

@@ -21,4 +21,7 @@ export class WorkBenchService {
   updateWorkBench(id: string, data: UpdateWorkBenchReq): Observable<any> {
     return this.http.patch(`http://localhost:3000/workbench/${id}`, data);
   }
+  deleteWorkBenchData(id: string): Observable<any> {
+    return this.http.delete(`http://localhost:3000/workbench/${id}`);
+  }
 }
