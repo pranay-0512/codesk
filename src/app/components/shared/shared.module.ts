@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonComponent } from './button/button.component';
 import { LoaderComponent } from './loader/loader/loader.component';
+import { ModalComponent } from './modal/modal/modal.component';
 
 const exportedComponents = [
   SideMenuComponent,
@@ -15,6 +16,7 @@ const exportedComponents = [
 @NgModule({
   declarations: [
     ...exportedComponents,
+    ModalComponent,
   ],
   imports: [
     CommonModule,

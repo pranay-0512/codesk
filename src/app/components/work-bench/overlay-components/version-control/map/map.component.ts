@@ -10,6 +10,7 @@ import { WorkBenchService } from 'src/app/_services/workbench/workbench.service'
 import { ActivatedRoute } from '@angular/router';
 import { CreateWorkBenchResp, CreateWorkbenchReq, UpdateWorkBenchReq } from 'src/app/_models/work-bench/workbench.model';
 import { LoaderService } from 'src/app/_services/loader/loader.service';
+import { LocalstorageService } from 'src/app/_services/localstorage/localstorage.service';
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -32,7 +33,7 @@ export class MapComponent implements OnInit {
     }
   }
   public workbenchId!: string;
-  constructor(private workbenchService: WorkBenchService, private route: ActivatedRoute, private loader: LoaderService) {
+  constructor(private workbenchService: WorkBenchService, private route: ActivatedRoute, private loader: LoaderService, private localStorageService: LocalstorageService) {
   }
   ngOnInit(): void {
     this.workbenchId = localStorage.getItem('workbenchId') || '';
@@ -191,29 +192,13 @@ export class MapComponent implements OnInit {
   renderCanvas(data: Node): void {
     const cocanvas_shapes = data.data;
     if(cocanvas_shapes === null || cocanvas_shapes === undefined) {
-      this.setLocalStorage(null as any, 'cocanvas_shapes');
+      this.localStorageService.setItem('cocanvas_shapes', null);
     }
     else {
-      this.setLocalStorage(cocanvas_shapes, 'cocanvas_shapes');
+      this.localStorageService.setItem('cocanvas_shapes', cocanvas_shapes);
+      console.log("local storage value changed") 
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   fetchTree(): void {
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
     canvas.style.filter = 'blur(5px)';
@@ -248,83 +233,35 @@ export class MapComponent implements OnInit {
   }
   takeSnapshot(): void {
     this.canvasData = localStorage.getItem('cocanvas_shapes');
-    
+    this.loader.showLoader();
     if(!this.canvasData || this.canvasData === undefined) return;
     
     const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
     canvas.style.filter = 'blur(20px)';
-    console.log(this.tree)
     const node = new Node(uuvidv4(), this.canvasData, new Date().toString(), `Node ${this.tree.countNodes(this.tree.root)}`);
     this.tree.addNode(node.id, node.data, node.date, node.label);
-    console.log(this.tree)
-
-    
-
-
-    // const treeEncryption = this.encryptTreeData(this.tree, environment.crypto_secretkey);
-    // const d = this.decryptTreeData(treeEncryption, environment.crypto_secretkey);
-    // console.log(d)
-    // console.log(treeEncryption, this.tree)
-    
-    // const reqData: UpdateWorkBenchReq = {
-    //   data: treeEncryption
-    // }
-    // console.log(reqData)
-    // // const reqData: UpdateWorkBenchReq = {
-    // //   data: clonedTree 
-    // // }
-
-    // this.workbenchService.updateWorkBench(this.workbenchId, reqData).subscribe({
-    //   next: (resp: CreateWorkBenchResp) => {
-    //     console.log(JSON.parse(resp.data))
-
-    //     // const tree = this.convertToTree(JSON.parse(resp.data));
-    //     // console.log(tree)
-    //   },
-    //   error: (err: any) => {
-    //     console.log(err);
-    //     this.loader.hideLoader();
-    //   },
-    //   complete: () => {
-    //     // setTimeout(() => {
-    //     //   this.renderTree(this.tree.root);
-    //     //   const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
-    //     //   canvas.style.filter = 'none';
-    //     //   this.loader.hideLoader();
-    //     // }, 500);
-    //   }
-    // })
-
-
-
+    const reqData: UpdateWorkBenchReq = {
+      data: this.encryptTreeData(this.tree, environment.crypto_secretkey)
+    }
+    this.workbenchService.updateWorkBench(this.workbenchId, reqData).subscribe({
+      next: (resp: CreateWorkBenchResp) => {
+        console.log(this.decryptTreeData(resp.data, environment.crypto_secretkey));
+        console.log(this.tree);
+      },
+      error: (err: any) => {
+        console.log(err);
+        this.loader.hideLoader();
+      },
+      complete: () => {
+        setTimeout(() => {
+          this.renderTree(this.tree.root);
+          const canvas = document.getElementById('co_canvas') as HTMLCanvasElement;
+          canvas.style.filter = 'none';
+          this.loader.hideLoader();
+        }, 500);
+      }
+    })
   }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   cloneTree(tree: Tree): Tree {
     const prototypeDescriptors = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(tree));
 

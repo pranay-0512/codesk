@@ -13,6 +13,7 @@ import * as FontFaceObserver from 'fontfaceobserver';
 import { ToolSelectedEvent } from '../work-bench.component';
 import { Subscription } from 'rxjs';
 import { PalleteService } from 'src/app/_services/pallete/pallete.service';
+import { LocalstorageService } from 'src/app/_services/localstorage/localstorage.service';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -86,7 +87,7 @@ export class CanvasComponent implements OnInit, OnChanges {
   };
   public storageSubscription!: Subscription;
   public theme: string = this.canvas_state.theme === 'light' ? 'rgb(255,255,0)' : 'rgba(0,0,0,1)';
-  constructor(public shapeService: WebsocketShapeService, public drawLine: LineService, public drawRectangle: RectangleService, public drawEllipse: EllipseService, public drawArrow: ArrowService, public drawFree: FreeDrawService, private palleteService: PalleteService) { 
+  constructor(public shapeService: WebsocketShapeService, public drawLine: LineService, public drawRectangle: RectangleService, public drawEllipse: EllipseService, public drawArrow: ArrowService, public drawFree: FreeDrawService, private palleteService: PalleteService, private localStorageService: LocalstorageService) { 
     const body = document.querySelector('body');
     body?.setAttribute('style', 'overflow: hidden');
     window.addEventListener('storage', (event) => {
@@ -101,13 +102,19 @@ export class CanvasComponent implements OnInit, OnChanges {
     this.fabricCanvas.loadFromJSON(shapes, () => {
       this.fabricCanvas.renderAll();
     })
-    // this.storageSubscription = this.localStorageService.storage$.subscribe((data) => {
-    //   shapes = data;
-    //   if(data === null) {this.fabricCanvas.clear(); return;}
-    //   this.fabricCanvas.loadFromJSON(shapes, () => {
-    //     this.fabricCanvas.renderAll();
-    //   })
-    // })
+    this.storageSubscription = this.localStorageService.storageChange$.subscribe(change => {
+      if (change.key === 'cocanvas_shapes') {
+        if(change.value === null) {
+          this.fabricCanvas.clear();
+        }
+        else {
+          this.canvas_shapes = change.value;
+          this.fabricCanvas.loadFromJSON(this.canvas_shapes, () => {
+            this.fabricCanvas.renderAll();
+          });
+        }
+      }
+    });
   }
   setLocalStorage(data: any): void {
     const serializedData = JSON.stringify(data);
